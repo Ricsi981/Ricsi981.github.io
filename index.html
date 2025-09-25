@@ -122,17 +122,17 @@
     // 👉 Replace these with your real videos and posters
     const VIDEOS = [
       {
-        title: "DNA assembly (demo)",
-        mp4: "assets/videos/dna_demo.mp4", // H.264 for Safari/iOS
-        webm: "assets/videos/dna_demo.webm", // VP9/AV1 for Chrome/Firefox (optional)
-        poster: "assets/thumbs/dna_demo.jpg",
+        title: "Apopt assembly",
+        mp4: "assets/videos/apopt_3JBT-assembly1.mp4", // H.264 for Safari/iOS
+        webm: "assets/videos/apopt_3JBT-assembly1.webm", // VP9/AV1 for Chrome/Firefox (optional)
+       // poster: (omitted) → will auto-use first frame
         description: "T = 298 K, pH 7.0, ionic strength 0.15 M; implicit solvent model.",
       },
       {
-        title: "IDP coil compaction (demo)",
-        mp4: "assets/videos/idp_demo.mp4",
-        webm: "assets/videos/idp_demo.webm",
-        poster: "assets/thumbs/idp_demo.jpg",
+        title: "ferritin.mp4",
+        mp4: "assets/videos/ferritin.mp4",
+        webm: "assets/videos/ferritin.webm",
+// poster: (omitted) → will auto-use first frame
         description: "CALVADOS CG, 1 µs simulated, chain length 120 aa; boomerang loop clip.",
       }
     ];
@@ -158,6 +158,47 @@
       fullscreen: "M7 14H5v5h5v-2H7v-3zm12 5h-5v-2h3v-3h2v5zM7 5h3V3H5v5h2V5zm10 0v3h3v2h-5V3h2v2z",
     };
 
+    // Auto-generate a poster image from the first frame if none is provided.
+    // Works for same-origin videos (your GitHub Pages files are same-origin).
+    function autoPoster(video) {
+      if (video.dataset.posterReady) return;
+      const capture = () => {
+        const w = video.videoWidth || 1280;
+        const h = video.videoHeight || Math.round(w * 9/16);
+        if (!w || !h) return;
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        try {
+          ctx.drawImage(video, 0, 0, w, h);
+          const dataURL = canvas.toDataURL('image/jpeg', 0.82);
+          video.setAttribute('poster', dataURL);
+          video.dataset.posterReady = '1';
+        } catch (e) {
+          // Likely CORS; on same-origin GitHub Pages assets this should not happen.
+        }
+      };
+
+      const seekToStartAndCapture = () => {
+        const onSeeked = () => {
+          video.removeEventListener('seeked', onSeeked);
+          capture();
+        };
+        video.addEventListener('seeked', onSeeked, { once: true });
+        try { video.currentTime = 0; } catch { capture(); }
+      };
+
+      if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+        seekToStartAndCapture();
+      } else {
+        const onLoaded = () => {
+          video.removeEventListener('loadeddata', onLoaded);
+          seekToStartAndCapture();
+        };
+        video.addEventListener('loadeddata', onLoaded, { once: true });
+      }
+    }
+
     function renderCard(item, idx) {
       const card = document.createElement('article');
       card.className = 'card';
@@ -171,7 +212,8 @@
       video.setAttribute('muted', ''); // required for autoplay policies
       video.setAttribute('loop', ''); // infinite loop
       video.setAttribute('preload', 'metadata');
-      video.setAttribute('poster', item.poster);
+      video.crossOrigin = 'anonymous'; // allow canvas capture for poster
+      if (item.poster) video.setAttribute('poster', item.poster);
       video.setAttribute('aria-label', item.title);
       video.controls = false; // start without native controls
 
