@@ -98,31 +98,34 @@
 </head>
 <body>
   <header>
-    <h1>Simulation Gallery</h1>
-    <p>Click a thumbnail to start an <strong>infinite looping</strong> preview. Double-click the video for fullscreen.</p>
+    <h1>Kutatók Éjszakája</h1>
+    <p>Kattints a <strong> fehérjére </strong>, hogy megnézd hogyan mozog. Duplakattintással ki is nagyíthatod a videót.</p>
   </header>
 
   <main class="container">
     <div id="gallery" class="grid" aria-live="polite"></div>
   </main>
 
-  <footer>Made with ❤ and HTML5 video. Add more items in <code>VIDEOS</code> in this file.</footer>
+<footer>
+  Eötvös Loránd Tudományegyetem<br>
+  Természettudományi Kar, Biológiai Intézet<br>
+  Biokémiai Tanszék
+</footer>
 
   <script>
-    // 👉 Replace with your videos; omit poster to auto-generate
     const VIDEOS = [
-      { title: "Alpha Amylase", mp4: "assets/videos/alpha_amylase_softShadows.mp4", webm: "assets/videos/alpha_amylase_softShadows.webm",
-        description: "T = 298 K, pH 7.0, ionic strength 0.15 M; implicit solvent model." },
-      { title: "Apoptosome", mp4: "assets/videos/apopt_3JBT-assembly1.mp4", webm: "assets/videos/apopt_3JBT-assembly1.webm",
-        description: "T = 298 K, pH 7.0, ionic strength 0.15 M; implicit solvent model." },
+      { title: "Alfa-amiláz", mp4: "assets/videos/alpha_amylase_softShadows.mp4", webm: "assets/videos/alpha_amylase_softShadows.webm",
+        description: "Keményítőt és glikogént bontó emésztőenzim, főként a nyálmirigyek és a hasnyálmirigy termeli." },
+      { title: "Apoptoszóma", mp4: "assets/videos/apopt_3JBT-assembly1.mp4", webm: "assets/videos/apopt_3JBT-assembly1.webm",
+        description: "Az Apaf-1 által szervezett fehérjekomplex, amely aktiválja a kaszpáz-9-et és elindítja a programozott sejthalált (apoptózist)." },
       { title: "Ferritin", mp4: "assets/videos/ferritin.mp4", webm: "assets/videos/ferritin.webm",
-        description: "T = 298 K, pH 7.0, ionic strength 0.15 M; implicit solvent model." },
-      { title: "P53", mp4: "assets/videos/p53_1tup-assembly.mp4", webm: "assets/videos/p53_1tup-assembly.webm",
-        description: "T = 298 K, pH 7.0, ionic strength 0.15 M; implicit solvent model." },
-      { title: "SSB4", mp4: "assets/videos/fold_ecoli_ssb_4.mp4", webm: "assets/videos/fold_ecoli_ssb_4.webm",
-        description: "T = 298 K, pH 7.0, ionic strength 0.15 M; implicit solvent model." },
+        description: "24 alegységből álló üreges „nanoketrec”, amely akár ~4500 vasatomot képes biztonságosan raktározni." },
+      { title: "p53 daganat-szuppresszor fehérje", mp4: "assets/videos/p53_1tup-assembly.mp4", webm: "assets/videos/p53_1tup-assembly.webm",
+        description: "A „genom őre” néven ismert transzkripciós faktor; génje az emberi daganatok több mint 50%-ában mutált." },
+      { title: "SSB4 – egyszálú DNS-kötő fehérje", mp4: "assets/videos/fold_ecoli_ssb_4.mp4", webm: "assets/videos/fold_ecoli_ssb_4.webm",
+        description: "Az E. coli SSB funkcionális homotetramer, amely védi az egyszálú DNS-t és központi a replikációban, javításban és rekombinációban." },
       { title: "LC8", mp4: "assets/videos/lc8.mp4", webm: "assets/videos/lc8.webm",
-        description: "CALVADOS CG, 1 µs simulated, chain length 120 aa; boomerang loop clip." },
+        description: "Kisméretű dimer „hub” fehérje, amely sok kliensfehérje dimerizációját és nagy fehérjekomplexek összeállását segíti." },
     ];
 
     const ICONS = {
