@@ -93,6 +93,34 @@
     .iconbtn:hover { background: rgba(0,0,0,.7); }
     .iconbtn svg { width: 18px; height: 18px; }
 
+    /* --- Custom control bar (auto-hide) --- */
+    .controls {
+      position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
+      display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 8px;
+      padding: 8px 10px; border-top-left-radius: 12px; border-top-right-radius: 12px;
+      background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0.25));
+      backdrop-filter: blur(4px);
+      opacity: 0; transform: translateY(6px);
+      transition: opacity .25s ease, transform .25s ease;
+      pointer-events: none; /* prevent blocking clicks when hidden */
+    }
+    .controls.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+    .controls .btn { width: 36px; height: 36px; border-radius: 10px; border: 0; cursor: pointer; color: var(--text);
+      background: rgba(0,0,0,.55); display: grid; place-items: center; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .controls .btn:hover { background: rgba(0,0,0,.7); }
+    .controls .btn svg { width: 18px; height: 18px; }
+
+    .controls .time { font-size: 13px; color: #e8eefce6; min-width: 88px; text-align: right; }
+
+    .controls .seek { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.25); outline: none; }
+    .controls .seek::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: white; box-shadow: 0 0 0 2px rgba(0,0,0,.35); }
+    .controls .seek::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: white; border: 0; box-shadow: 0 0 0 2px rgba(0,0,0,.35); }
+
+    /* Hide mouse cursor when UI is hidden */
+    .media.hide-ui { cursor: none; }
+
     .meta { padding: 12px 14px 16px; }
     .title { margin: 0 0 6px; font-size: 16px; line-height: 1.25; }
     .desc { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
@@ -122,17 +150,17 @@
     // 👉 Replace these with your real videos and posters
     const VIDEOS = [
       {
-        title: "Apopt assembly",
-        mp4: "assets/videos/apopt_3JBT-assembly1.mp4", // H.264 for Safari/iOS
-        webm: "assets/videos/apopt_3JBT-assembly1.webm", // VP9/AV1 for Chrome/Firefox (optional)
-       // poster: (omitted) → will auto-use first frame
+        title: "DNA assembly (demo)",
+        mp4: "assets/videos/dna_demo.mp4", // H.264 for Safari/iOS
+        webm: "assets/videos/dna_demo.webm", // VP9/AV1 for Chrome/Firefox (optional)
+        poster: "assets/thumbs/dna_demo.jpg",
         description: "T = 298 K, pH 7.0, ionic strength 0.15 M; implicit solvent model.",
       },
       {
-        title: "ferritin.mp4",
-        mp4: "assets/videos/ferritin.mp4",
-        webm: "assets/videos/ferritin.webm",
-// poster: (omitted) → will auto-use first frame
+        title: "IDP coil compaction (demo)",
+        mp4: "assets/videos/idp_demo.mp4",
+        webm: "assets/videos/idp_demo.webm",
+        poster: "assets/thumbs/idp_demo.jpg",
         description: "CALVADOS CG, 1 µs simulated, chain length 120 aa; boomerang loop clip.",
       }
     ];
@@ -236,24 +264,40 @@
       playBtn.setAttribute('aria-label', `Play ${item.title}`);
       overlay.appendChild(playBtn);
 
-      const tools = document.createElement('div');
-      tools.className = 'tools';
+      // Custom controls bar (auto-hide)
+      const controls = document.createElement('div');
+      controls.className = 'controls';
+
+      const ppBtn = document.createElement('button');
+      ppBtn.className = 'btn';
+      ppBtn.title = 'Play/Pause';
+      ppBtn.appendChild(icon(ICONS.play));
+
+      const seek = document.createElement('input');
+      seek.type = 'range'; seek.className = 'seek'; seek.min = 0; seek.step = 0.05; seek.value = 0;
+
+      const time = document.createElement('div');
+      time.className = 'time'; time.textContent = '0:00 / 0:00';
+
       const volBtn = document.createElement('button');
-      volBtn.className = 'iconbtn';
+      volBtn.className = 'btn';
       volBtn.title = 'Toggle sound';
       volBtn.appendChild(icon(ICONS.mute));
 
       const fsBtn = document.createElement('button');
-      fsBtn.className = 'iconbtn';
+      fsBtn.className = 'btn';
       fsBtn.title = 'Fullscreen';
       fsBtn.appendChild(icon(ICONS.fullscreen));
 
-      tools.appendChild(volBtn);
-      tools.appendChild(fsBtn);
+      controls.appendChild(ppBtn);
+      controls.appendChild(seek);
+      controls.appendChild(time);
+      controls.appendChild(volBtn);
+      controls.appendChild(fsBtn);
 
       media.appendChild(video);
       media.appendChild(overlay);
-      media.appendChild(tools);
+      media.appendChild(controls);
 
       const meta = document.createElement('div');
       meta.className = 'meta';
@@ -267,14 +311,19 @@
       // Interactions
       function startPlaying() {
         media.classList.add('playing');
-        video.controls = true; // give native controls (includes fullscreen in most browsers)
+        video.controls = false; // use custom controls so we can auto-hide
         video.muted = true; // ensure muted at start for autoplay
-        video.play().catch(() => {});
+        video.play().then(() => {
+          updatePlayIcon();
+          showControls();
+        }).catch(() => {});
+      });
       }
       function toggleSound() {
         video.muted = !video.muted;
         volBtn.innerHTML = '';
         volBtn.appendChild(icon(video.muted ? ICONS.mute : ICONS.volume));
+        showControls();
       }
       function goFullscreen() {
         const el = video; // fullscreen the video element
@@ -286,15 +335,85 @@
       playBtn.addEventListener('click', startPlaying);
       // Also click anywhere on media area to start
       overlay.addEventListener('click', startPlaying);
-      media.addEventListener('dblclick', goFullscreen);
-      fsBtn.addEventListener('click', goFullscreen);
+
+      // Toggle play/pause on single click
+      video.addEventListener('click', () => { if (!video.paused) video.pause(); else video.play(); });
+
+      // Controls: play/pause
+      function updatePlayIcon(){
+        ppBtn.innerHTML = '';
+        ppBtn.appendChild(icon(video.paused ? ICONS.play : ICONS.pause));
+      }
+      ppBtn.addEventListener('click', () => { video.paused ? video.play() : video.pause(); });
+      video.addEventListener('play', () => { updatePlayIcon(); showControls(); });
+      video.addEventListener('pause', () => { updatePlayIcon(); showControls(false); });
+
+      // Time + seek
+      function fmt(t){ t=Math.max(0, t|0); const m=(t/60)|0, s=t%60; return `${m}:${s.toString().padStart(2,'0')}`; }
+      function updateTime(){
+        const d = isFinite(video.duration) ? video.duration : 0;
+        time.textContent = `${fmt(video.currentTime)} / ${fmt(d)}`;
+        if (d>0 && !seek.dragging) { seek.max = d; seek.value = video.currentTime; }
+      }
+      video.addEventListener('timeupdate', updateTime);
+      video.addEventListener('durationchange', updateTime);
+      seek.addEventListener('input', () => { seek.dragging = true; showControls(); });
+      seek.addEventListener('change', () => { video.currentTime = parseFloat(seek.value||'0'); seek.dragging = false; showControls(); });
+
+      // Volume
+      function toggleSound() {
+        video.muted = !video.muted;
+        volBtn.innerHTML = '';
+        volBtn.appendChild(icon(video.muted ? ICONS.mute : ICONS.volume));
+        showControls();
+      }
       volBtn.addEventListener('click', toggleSound);
+
+      // Fullscreen
+      function goFullscreen() {
+        const el = video; // fullscreen the video element
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      }
+      fsBtn.addEventListener('click', goFullscreen);
+      media.addEventListener('dblclick', goFullscreen);
+
+      // Auto-hide controls after inactivity
+      let hideTimer = null;
+      function showControls(auto = true){
+        controls.classList.add('visible');
+        media.classList.remove('hide-ui');
+        if (hideTimer) clearTimeout(hideTimer);
+        if (auto && !video.paused) hideTimer = setTimeout(() => {
+          controls.classList.remove('visible');
+          media.classList.add('hide-ui');
+        }, 2000);
+      }
+      function pointerShow(){ showControls(true); }
+      ['mousemove','touchstart','pointermove'].forEach(ev => media.addEventListener(ev, pointerShow));
+
+      document.addEventListener('fullscreenchange', () => {
+        // When entering fullscreen, ensure controls appear briefly then auto-hide
+        if (document.fullscreenElement === video || document.fullscreenElement === media) {
+          showControls(true);
+        } else {
+          // Leaving fullscreen: keep controls visible
+          controls.classList.add('visible');
+          media.classList.remove('hide-ui');
+        }
+      });
+
+      // Keyboard shortcuts when focused
+      card.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') { e.preventDefault(); video.paused ? video.play() : video.pause(); }
+        if (e.key === 'm' || e.key === 'M') { toggleSound(); }
+        if (e.key === 'f' || e.key === 'F') { goFullscreen(); }
+      });
 
       // Pause when scrolled offscreen (saves CPU)
       const io = new IntersectionObserver(entries => {
-        entries.forEach(e => {
-          if (!e.isIntersecting) video.pause();
-        });
+        entries.forEach(e => { if (!e.isIntersecting) video.pause(); });
       }, { threshold: 0.1 });
       io.observe(card);
 
