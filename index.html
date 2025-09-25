@@ -165,8 +165,9 @@
 
       const overlay=document.createElement('div'); overlay.className='overlay';
       const playBtn=document.createElement('button'); playBtn.className='playbtn';
-      playBtn.appendChild(icon(ICONS.play)); playBtn.appendChild(document.createTextNode(' Play'));
-      playBtn.setAttribute('aria-label',`Play ${item.title}`); overlay.appendChild(playBtn);
+     playBtn.appendChild(icon(ICONS.play));
+     playBtn.appendChild(document.createTextNode(' Lejátszás'));
+     playBtn.setAttribute('aria-label', `Lejátszás: ${item.title}`);
 
       const controls=document.createElement('div'); controls.className='controls';
       const ppBtn=document.createElement('button'); ppBtn.className='btn'; ppBtn.title='Play/Pause'; ppBtn.appendChild(icon(ICONS.play));
