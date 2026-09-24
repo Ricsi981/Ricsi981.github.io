@@ -29,8 +29,8 @@
     header p { margin: 0; color: var(--muted); }
     header .intro { max-width: 720px; margin: 12px auto; line-height: 1.6; }
     header .hint { font-size: 14px; line-height: 1.5; }
-    .brand { display: inline-block; max-width: 100%; margin-bottom: 20px; padding: 16px 22px; background: #fff; border-radius: 8px; }
-    .brand img { display: block; width: 286px; max-width: 100%; height: auto; }
+    .brand { display: block; width: fit-content; max-width: 100%; margin: 0 auto 20px; }
+    .brand img { display: block; width: 286px; max-width: 100%; height: auto; filter: brightness(0) invert(1); }
     :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
     .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
@@ -46,10 +46,28 @@
     }
     .card:focus-within, .card:hover { transform: translateY(-2px); border-color: var(--ring); box-shadow: 0 18px 40px rgba(30,60,120,.3); }
 
-    .media { position: relative; aspect-ratio: 16/9; background: #0a0f18; overflow: hidden; }
+    .card-featured { grid-column: 1 / -1; border-color: var(--ring); }
+    .card-featured .meta { padding: 22px; }
+    .card-featured .title { font-size: clamp(22px, 3vw, 28px); }
+    .featured-label { margin: 0 0 8px; color: var(--accent); font-size: 13px; font-weight: 700; }
+    .media { position: relative; background: #0a0f18; overflow: hidden; }
+    .screen { position: relative; aspect-ratio: 16/9; }
     .media img, .media video { width: 100%; height: 100%; object-fit: contain; display: block; }
     .media video { background:#000; }
-    .media:fullscreen { width: 100%; height: 100%; aspect-ratio: auto; background: #000; }
+    .media:fullscreen { width: 100%; height: 100%; display: flex; flex-direction: column; background: #000; }
+    .media:fullscreen .screen { flex: 1; min-height: 0; aspect-ratio: auto; }
+    .video-note { position: relative; margin: 12px; padding: 16px 44px 16px 16px; border: 1px solid var(--ring); border-radius: 16px; background: rgba(18, 28, 47, .95); color: var(--text); cursor: auto; }
+    .video-note h3 { margin: 0 0 8px; font-size: 15px; }
+    .video-note p { margin: 0; font-size: 14px; line-height: 1.6; }
+    .note-close { position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; color: var(--text); background: transparent; cursor: pointer; }
+    .note-close:hover { background: rgba(255,255,255,.12); }
+    .note-close svg { width: 20px; height: 20px; }
+    .media:fullscreen .video-note { position: absolute; right: 12px; top: 12px; width: 340px; max-height: calc(100% - 100px); overflow-y: auto; z-index: 6; }
+    @media (max-width: 600px) {
+      .card-featured .screen { aspect-ratio: 4/3; }
+      .media:fullscreen .video-note { position: relative; top: auto; right: auto; width: auto; max-height: 35dvh; flex-shrink: 0; }
+      .card-featured .meta { padding: 16px; }
+    }
 
     .overlay {
       position: absolute; inset: 0; display: grid; place-items: center;
@@ -94,6 +112,11 @@
     .controls .seek::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,.35); }
     .controls .seek::-moz-range-thumb    { width:14px; height:14px; border-radius:50%; background:#fff; border:0; box-shadow:0 0 0 2px rgba(0,0,0,.35); }
     .controls .time { font-size: 13px; color: #e8eefce6; min-width: 88px; text-align: right; flex: 0 0 auto; }
+    @media (max-width: 400px) {
+      .controls { gap: 4px; padding: 8px 6px; }
+      .controls .btn { width: 32px; }
+      .controls .time { min-width: 70px; font-size: 11px; }
+    }
 
     /* Hide cursor when UI hidden (e.g., in fullscreen) */
     .media.hide-ui { cursor: none; }
@@ -107,15 +130,12 @@
       .card:hover, .card:focus-within { transform: none; }
     }
 
-    footer { text-align:center; color: var(--muted); padding: 24px 0 44px; font-size: 13px; }
+    footer { text-align:center; color: var(--muted); padding: 24px 16px 44px; font-size: 13px; }
     a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
   <header>
-    <a class="brand" href="https://www.elte.hu/" aria-label="Eötvös Loránd Tudományegyetem: honlap">
-      <img src="assets/images/elte-logo.svg" alt="Eötvös Loránd Tudományegyetem" width="286" height="52" />
-    </a>
     <h1>Kutatók Éjszakája - Fehérjeszimulációk</h1>
     <p class="intro">A fehérjék a sejtek apró munkásai: segítenek megemészteni az ételt, vasat tárolnak, vagy a DNS-re vigyáznak. Közben folyton mozognak. Ezeken a számítógépes modelleken megnézheted, hogyan.</p>
     <p class="hint">Válassz egy videót, és indítsd el! A jobb alsó gombbal teljes képernyőre válthatsz. A videóknak nincs hangjuk.</p>
@@ -127,6 +147,9 @@
   </main>
 
 <footer>
+  <a class="brand" href="https://www.elte.hu/" aria-label="Eötvös Loránd Tudományegyetem: honlap">
+    <img src="assets/images/elte-logo.svg" alt="Eötvös Loránd Tudományegyetem" width="286" height="52" />
+  </a>
   Eötvös Loránd Tudományegyetem<br>
   Természettudományi Kar, Biológiai Intézet<br>
   Biokémiai Tanszék
@@ -134,23 +157,54 @@
 
   <script>
     const VIDEOS = [
-      { title: "Alfa-amiláz: az emésztés már a szádban elkezdődik", file: "alpha_amylase_softShadows",
-        description: "Ha sokáig rágod a kenyeret, édeskés íze lesz. Ebben a nyáladban lévő alfa-amiláz segít: a keményítő hosszú láncait kisebb cukrokra bontja. A videón ezt a fehérjét láthatod mozgás közben." },
-      { title: "Apoptoszóma: amikor egy sejtnek búcsúznia kell", file: "apopt_3JBT-assembly1",
-        description: "A szervezetnek néha meg kell válnia egy sérült vagy feleslegessé vált sejttől. Ez a kerékszerű fehérjecsoport segít elindítani a sejt rendezett lebontását, hogy a környező sejtek ne sérüljenek." },
-      { title: "Ferritin: a sejt vasraktára", file: "ferritin",
-        description: "Vas nélkül nem tudnánk oxigént szállítani a vérünkben, de a szabadon lévő vas kárt is okozhat a sejtekben. A ferritin üreges belsejében tárolja a tartalékot. Huszonnégy fehérjedarab áll össze hozzá egy apró, zárt tárolóvá." },
-      { title: "p53: szünet a javítás idejére", file: "p53_2ahi",
-        description: "A DNS a sejtek örökítőanyaga. Ha megsérül, a p53 segít leállítani a sejt osztódását, amíg a hibát kijavítják. Ha túl nagy a baj, a sejt lebontását is segítheti. Így véd a hibás sejtek elszaporodásától." },
-      { title: "SSB: védelem a DNS-nek", file: "ssb",
-        description: "Másoláskor a DNS két szála különválik, mint egy cipzár két oldala. Az SSB a szabaddá vált szálhoz kapcsolódik: védi, és segít, hogy ne gabalyodjon össze. Figyeld meg, mennyire mozgékonyak a fehérje kilógó részei!" },
-      { title: "SSB: sok fehérje, egy apró csepp", file: "ssb_llps",
-        description: "Itt már sok SSB-fehérjét látsz együtt. Bizonyos körülmények között összegyűlnek, és folyadékszerű cseppet alkotnak. A csepp belsejében továbbra is mozognak. Ezt a jelenséget fázisszétválásnak hívják, angol rövidítése LLPS." },
-      { title: "LC8: összeköt két fehérjét", file: "lc8",
-        description: "Sok fehérje csak másokkal együtt tudja elvégezni a feladatát. Az LC8 két egyforma részből áll, és más fehérjéket kapcsolhat párba. Olyasmi, mint egy apró összekötő elem, amely segít összeállítani egy nagyobb szerkezetet." },
+      {
+        "title": "Alfa-amiláz: egy mozgó molekuláris szerszám",
+        "file": "alpha_amylase_softShadows",
+        "description": "Figyeld a fehérje egyenetlen felszínét: a kis kiemelkedések és mélyedések folyton mocorognak. Az alfa-amiláz egyik vájatába illeszkedik a keményítő lánca, amelyet kisebb darabokra bont. Ez a nyáladban is megtörténik, amikor kenyeret rágsz.",
+        "note": "Nézd a felszínt: a fehérje nem merev tárgy, apró részei folyamatosan mozognak. A keményítő bontása a fehérje egy meghatározott vájatában történik. A videón magát a fehérjét látod, a bontási folyamat nincs megjelenítve."
+      },
+      {
+        "title": "Apoptoszóma: hét rész egy kerékben",
+        "file": "apopt_3JBT-assembly1",
+        "description": "Meg tudod számolni a kerék hét küllőjét? Hét hasonló fehérje rendeződik körbe, és együtt alkotják az apoptoszómát. Ez a szerkezet segít bekapcsolni azokat a fehérjéket, amelyek egy sérült vagy feleslegessé vált sejt rendezett lebontását végzik.",
+        "note": "Kövesd a körben ismétlődő részeket: hét hasonló egység kapcsolódik össze. A videón a már összeállt apoptoszómát látod. Ez ad helyet a sejt lebontását elindító fehérjék bekapcsolásának."
+      },
+      {
+        "title": "Ferritin: színes darabokból vasraktár",
+        "file": "ferritin",
+        "description": "A színes foltok külön fehérjeegységeket jelölnek. Huszonnégy ilyen darab illeszkedik össze egy üreges gömbbé. Ez a ferritin: a sejt belül tárolhatja a vasat, így az nem okoz kárt szabadon. Figyeld, milyen szorosan illeszkednek egymáshoz a színes darabok!",
+        "note": "A különböző színek segítenek követni a burok darabjait. A ferritin belül üreges: ott tudja tárolni a vasat. A videó a fehérjeburkot mutatja, a vas bejutását nem."
+      },
+      {
+        "title": "p53: így illeszkedik a DNS-hez",
+        "file": "p53_2ahi",
+        "description": "A rózsaszín és sárga DNS-t a kékesszürke p53-részek fogják közre. Nézd meg, hogyan illeszkedik a fehérje felszíne a DNS barázdáihoz! A p53 így tud bizonyos géneket bekapcsolni, például a sejtosztódás megállításához. Ha egy mutáció megváltoztatja a p53 alakját vagy kötőfelszínét, ez a kapcsolódás elromolhat.",
+        "note": "Keresd meg középen a DNS két szálát, majd figyeld a hozzájuk simuló p53-részeket! Az alak és a felszínek kémiai tulajdonságai együtt teszik lehetővé a kötődést. Már a p53 egyetlen építőelemének megváltozása is ronthatja ezt. Itt a kötődést látod, nem egy DNS-hiba felismerését."
+      },
+      {
+        "title": "SSB: tömör közép, mozgékony nyúlványok",
+        "file": "ssb",
+        "description": "A kék, tömörebb rész körül hosszú, sárga nyúlványok csapkodnak. Ezek is a fehérjéhez tartoznak, csak sokkal hajlékonyabbak. Az SSB a másoláskor szabaddá váló DNS-szálat védi, a nyúlványai pedig más fehérjékkel teremthetnek kapcsolatot.",
+        "note": "Hasonlítsd össze a kék középső rész és a sárga nyúlványok mozgását! A közép egyben marad, a nyúlványok nagy teret járnak be. A sárga részek itt a fehérje hajlékony szakaszai, nem DNS-szálak."
+      },
+      {
+        "title": "LC8: két fehérjelánc egymás mellett",
+        "file": "lc8",
+        "description": "A modell alsó részén két tömörebb egységet látsz, fölöttük két hosszúkás lánc fut egymás mellett. Az LC8 páros szerkezete segít más fehérjék szakaszait egymás mellé rendezni. Figyeld, hogyan simulnak egymáshoz a színes felszínek!",
+        "note": "Nézd meg a két hosszúkás láncot és azt, hol érintkeznek az alsó, tömörebb részekkel! Az LC8 két egysége együtt ad kötőhelyet más fehérjéknek, és segíthet párba rendezni őket."
+      },
+      {
+        "title": "SSB: sok fehérje, egy mozgó csepp",
+        "file": "ssb_llps",
+        "featured": true,
+        "description": "Az SSB-ről szóló első videón egyetlen ilyen fehérjét figyelhettél meg. Itt már sok példány mozog együtt: középen sűrűbb csoportot alkotnak, körülöttük elszórtan is látszanak fehérjék. Nézd a csoport szélét és a benne mozgó részeket! A csepp nem merev csomó, a fehérjék benne is mozognak. Ezt a sűrűbb és ritkább tartományra válást hívják fázisszétválásnak, röviden LLPS-nek.",
+        "note": "Válassz ki egy fehérjét a csepp szélén, és próbáld követni! Középen sok fehérje van közel egymáshoz, kívül jóval kevesebb. A csepp alakja közben változik, a benne lévő fehérjék sem állnak meg."
+      }
     ];
 
     const ICONS = {
+      info: 'M11 10h2v8h-2zm0-4h2v2h-2zM12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16z',
+      close: 'M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12 19 17.6 17.6 19 12 13.4 6.4 19 5 17.6 10.6 12 5 6.4z',
       play: 'M8 5v14l11-7z',
       pause: 'M6 5h4v14H6zm8 0h4v14h-4z',
       fullscreen: 'M5 9V5h4V3H3v6h2zm10-6v2h4v4h2V3h-6zM3 15v6h6v-2H5v-4H3zm16 0v4h-4v2h6v-6h-2z',
@@ -185,10 +239,12 @@
 
     function renderCard(item, index) {
       const card = document.createElement('article');
-      card.className = 'card';
+      card.className = item.featured ? 'card card-featured' : 'card';
       card.setAttribute('aria-labelledby', `title-${index}`);
       const media = document.createElement('div');
       media.className = 'media';
+      const screen = document.createElement('div');
+      screen.className = 'screen';
       const video = document.createElement('video');
       video.src = `assets/videos/${item.file}.mp4`;
       video.poster = `assets/posters/${item.file}.jpg`;
@@ -223,8 +279,25 @@
       time.setAttribute('aria-hidden', 'true');
       const fsBtn = button('Teljes képernyő', ICONS.fullscreen);
       fsBtn.hidden = !media.requestFullscreen && !video.webkitEnterFullscreen;
-      controls.append(ppBtn, seek, time, fsBtn);
-      media.append(video, overlay, controls);
+      const infoBtn = button('Magyarázat megnyitása', ICONS.info);
+      infoBtn.classList.add('info-btn');
+      infoBtn.setAttribute('aria-controls', `note-${index}`);
+      infoBtn.setAttribute('aria-expanded', 'false');
+      const note = document.createElement('aside');
+      note.className = 'video-note';
+      note.id = `note-${index}`;
+      note.hidden = true;
+      note.setAttribute('aria-labelledby', `note-title-${index}`);
+      const noteTitle = document.createElement('h3');
+      noteTitle.id = `note-title-${index}`;
+      noteTitle.textContent = 'Mit figyelj meg?';
+      const noteText = document.createElement('p');
+      noteText.textContent = item.note;
+      const closeNote = button('Magyarázat bezárása', ICONS.close, 'note-close');
+      note.append(noteTitle, noteText, closeNote);
+      controls.append(ppBtn, seek, time, infoBtn, fsBtn);
+      screen.append(video, overlay, controls);
+      media.append(screen, note);
 
       const meta = document.createElement('div');
       meta.className = 'meta';
@@ -240,9 +313,37 @@
       error.className = 'error';
       error.hidden = true;
       error.setAttribute('role', 'status');
+      if (item.featured) {
+        const label = document.createElement('p');
+        label.className = 'featured-label';
+        label.textContent = 'Kiemelt videó • Fázisszétválás';
+        meta.appendChild(label);
+      }
       meta.append(heading, description, error);
       card.append(media, meta);
 
+      let noteSeen = false;
+      function setNoteOpen(open) {
+        note.hidden = !open;
+        infoBtn.setAttribute('aria-expanded', String(open));
+        const label = open ? 'Magyarázat bezárása' : 'Magyarázat megnyitása';
+        infoBtn.title = label;
+        infoBtn.setAttribute('aria-label', label);
+      }
+      infoBtn.addEventListener('click', () => {
+        noteSeen = true;
+        setNoteOpen(note.hidden);
+      });
+      closeNote.addEventListener('click', () => {
+        infoBtn.focus();
+        setNoteOpen(false);
+      });
+      video.addEventListener('play', () => {
+        if (!noteSeen) {
+          noteSeen = true;
+          setNoteOpen(true);
+        }
+      });
       let hideTimer;
       function showControls() {
         clearTimeout(hideTimer);
@@ -330,7 +431,7 @@
       }
       fsBtn.addEventListener('click', toggleFullscreen);
       media.addEventListener('dblclick', event => {
-        if (event.target.closest('button, input')) return;
+        if (event.target.closest('button, input, .video-note')) return;
         toggleFullscreen();
       });
       document.addEventListener('fullscreenchange', () => {

@@ -15,3 +15,7 @@ ffmpeg -ss 1 -i assets/videos/ssb.mp4 -frames:v 1 -vf scale=640:-1 -q:v 3 assets
 A lejátszók egérrel, érintéssel és billentyűzettel is kezelhetők. Tab billentyűvel választható vezérlő; Enter vagy szóköz aktiválja a gombokat, a nyílbillentyűk a kijelölt időcsúszkát mozgatják. F teljes képernyőre vált, Esc kilép belőle. A képernyőről kikerülő vagy háttérbe tett videók szünetelnek.
 
 Az ELTE-logó forrását az `assets/images/README.md` tartalmazza. Az SSB-cseppek közérthető leírásának szakmai háttere: [Harami és munkatársai, 2020](https://pubmed.ncbi.nlm.nih.gov/33020264/).
+
+Az LLPS-videó a galéria utolsó, teljes szélességű kártyája. A `featured` mező jelöli a kiemelést. A `description` a kártya magyarázata, a `note` pedig a videó első indításakor megjelenő, bezárható buborék szövege. Az információgombbal a buborék újra megnyitható. Kis lejátszóban a kép alatt, teljes képernyőn a kép mellett vagy fölött jelenik meg, a képernyő méretétől függően. Az iPhone natív videós teljes képernyője nem jeleníti meg az oldal saját buborékát.
+
+A p53 leírása a DNS-hez kötődést mutatja be, és a p53 saját mutációinak lehetséges hatását magyarázza. Nem állítja, hogy a fehérje a DNS alakjából közvetlenül felismer minden hibát. Szakmai háttér: [a 2AHI szerkezet](https://www.rcsb.org/structure/2AHI), [RCSB PDB-101: p53](https://pdb101.rcsb.org/motm/31). Az apoptoszóma hét részből álló szerkezete: [3JBT](https://www.rcsb.org/structure/3JBT).
