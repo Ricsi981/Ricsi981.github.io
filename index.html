@@ -56,7 +56,7 @@
     .topic-sources { margin-top: 22px !important; color: var(--muted); font-size: 12px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
     .card { min-width: 0; border: 1px solid var(--rule); border-radius: 4px; background: #1c2229; }
-    .media { position: relative; background: #101418; }
+    .media { position: relative; background: #000; }
     .screen { position: relative; aspect-ratio: 16/9; overflow: hidden; }
     .media img, .media video { width: 100%; height: 100%; object-fit: contain; display: block; }
     .media video { background: #000; }
@@ -71,8 +71,8 @@
     .playbtn { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 16px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; }
     .playbtn:hover { background: var(--text); color: var(--paper); }
     .playbtn svg { width: 18px; height: 18px; }
-    .controls { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #222a32; color: var(--text); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .15s ease; }
-    .controls.visible, .media:focus-within .controls { opacity: 1; visibility: visible; pointer-events: auto; }
+    .controls { position: relative; flex-shrink: 0; width: 100%; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #222a32; color: var(--text); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .15s ease; }
+    .controls.visible { opacity: 1; visibility: visible; pointer-events: auto; }
     .controls .btn { width: 36px; height: 36px; border: 0; border-radius: 0; cursor: pointer; color: var(--text); background: transparent; display: grid; place-items: center; flex: 0 0 auto; }
     .controls .btn:hover { background: #34414d; }
     .controls :focus-visible { outline-color: var(--text); outline-offset: 1px; }
@@ -215,6 +215,11 @@
 </footer>
 
   <script>
+    let keyboardNavigation = false;
+    document.addEventListener('keydown', () => { keyboardNavigation = true; }, true);
+    document.addEventListener('pointerdown', () => { keyboardNavigation = false; }, true);
+    document.addEventListener('pointermove', () => { keyboardNavigation = false; }, true);
+
     document.querySelectorAll('.topic-toggle').forEach(toggle => {
       const panel = document.getElementById(toggle.getAttribute('aria-controls'));
       function setOpen(open) {
@@ -341,7 +346,7 @@
       overlay.appendChild(playBtn);
 
       const controls = document.createElement('div');
-      controls.className = 'controls';
+      controls.className = 'controls visible';
       const ppBtn = button('Lejátszás', ICONS.play);
       const seek = document.createElement('input');
       seek.type = 'range';
@@ -374,8 +379,8 @@
       const closeNote = button('Magyarázat bezárása', ICONS.close, 'note-close');
       note.append(noteTitle, noteText, closeNote);
       controls.append(ppBtn, seek, time, infoBtn, fsBtn);
-      screen.append(video, overlay, controls);
-      media.append(screen, note);
+      screen.append(video, overlay);
+      media.append(screen, controls, note);
 
       const meta = document.createElement('div');
       meta.className = 'meta';
@@ -421,7 +426,7 @@
         media.classList.remove('hide-ui');
       }
       function hideControls() {
-        if (video.paused || media.contains(document.activeElement)) return;
+        if (video.paused || (keyboardNavigation && media.contains(document.activeElement))) return;
         controls.classList.remove('visible');
         media.classList.add('hide-ui');
       }
@@ -471,7 +476,7 @@
       media.addEventListener('pointerdown', scheduleHide);
       media.addEventListener('pointerenter', scheduleHide);
       media.addEventListener('pointerleave', hideControls);
-      media.addEventListener('focusin', showControls);
+      media.addEventListener('focusin', scheduleHide);
       media.addEventListener('focusout', scheduleHide);
 
       function updateTime() {
@@ -487,7 +492,7 @@
       seek.addEventListener('input', () => {
         if (Number.isFinite(video.duration)) video.currentTime = Number(seek.value);
         updateTime();
-        showControls();
+        scheduleHide();
       });
 
       function isExpanded() {
