@@ -7,170 +7,125 @@
   <meta name="description" content="Mozgó fehérjék, DNS-védelem és apró fehérjecseppek. Szimulációs videók közérthető magyarázatokkal az ELTE Kutatók Éjszakáján." />
   <style>
     :root {
-      --bg: #0b0d12; --card: #121622; --text: #e8eefc;
-      --muted: #a9b3c7; --accent: #7aa2ff; --ring: rgba(122,162,255,.35);
+      color-scheme: dark;
+      --bg: #15191d;
+      --text: #e8edf2;
+      --muted: #b0bac4;
+      --accent: #42d7e8;
+      --rule: #36414b;
+      --paper: #222a32;
     }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html { min-height: 100%; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-      color: var(--text);
-      background:
-        radial-gradient(1200px 800px at 10% -10%, #172036 0, transparent 60%),
-        radial-gradient(900px 700px at 110% 10%, #13203b 0, transparent 60%),
-        var(--bg);
-      background-repeat: no-repeat;
-    }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: Arial, Helvetica, sans-serif; line-height: 1.6; }
+    button, input { font: inherit; }
+    a { color: var(--accent); text-underline-offset: 4px; }
+    a:hover { text-decoration-thickness: 2px; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+    .skip-link { position: absolute; top: 8px; left: 16px; padding: 10px 16px; background: var(--paper); z-index: 1100; transform: translateY(-150%); }
+    .skip-link:focus { transform: none; }
     header { padding: 28px 18px 12px; text-align: center; }
-    header h1 { margin: 0 0 6px; font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; letter-spacing: .2px; overflow-wrap: anywhere; }
-    header p { margin: 0; color: var(--muted); }
-    header .intro { max-width: 720px; margin: 12px auto; line-height: 1.6; }
-    header .hint { font-size: 14px; line-height: 1.5; }
+    h1 { margin: 0 0 6px; color: var(--accent); font-size: clamp(24px, 4vw, 32px); font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+    header .intro { max-width: 720px; margin: 12px auto; color: var(--muted); font-size: 16px; line-height: 1.6; }
+    header .hint { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
     .brand { display: block; width: fit-content; max-width: 100%; margin: 0 auto 20px; }
     .brand img { display: block; width: 286px; max-width: 100%; height: auto; filter: brightness(0) invert(1); }
-    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-
-    .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px),1fr)); gap: 16px; }
-
-    .card {
-      min-width: 0;
-      background: linear-gradient(to bottom right, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border: 1px solid rgba(255,255,255,.06);
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-      border-radius: 16px; overflow: hidden;
-      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    .card:focus-within, .card:hover { transform: translateY(-2px); border-color: var(--ring); box-shadow: 0 18px 40px rgba(30,60,120,.3); }
-
-    .card-featured { grid-column: 1 / -1; border-color: var(--ring); }
+    .learn { margin-bottom: 24px; }
+    .learn-heading { margin: 0 0 12px; font-size: 13px; font-weight: 400; color: var(--muted); }
+    .topic-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+    .topic-toggle { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 14px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); color: var(--text); text-align: left; cursor: pointer; font-size: 14px; }
+    .topic-toggle::after { content: '+'; margin-left: auto; color: var(--accent); font-size: 24px; line-height: 1; }
+    .topic-toggle:hover, .topic-toggle[aria-expanded="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+    .topic-toggle[aria-expanded="true"]::after { content: '−'; }
+    .topic-panel { position: relative; margin-top: 24px; padding: 24px 28px; border-left: 3px solid var(--accent); background: var(--paper); line-height: 1.65; }
+    .topic-panel h2 { margin: 0 40px 18px 0; font-size: clamp(20px, 3vw, 26px); font-weight: 600; line-height: 1.3; }
+    .topic-panel h3 { margin: 0 0 8px; font-size: 16px; }
+    .topic-panel p { margin: 0 0 12px; }
+    .topic-panel p:last-child { margin-bottom: 0; }
+    .topic-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+    .topic-panel .equation { padding: 12px 0; border-block: 1px solid var(--rule); color: var(--accent); font-size: clamp(14px, 2vw, 17px); overflow-wrap: anywhere; }
+    #topic-scale .equation { overflow-wrap: normal; }
+    #topic-scale .distance-comparison { font-size: clamp(12px, 1.5vw, 16px); }
+    .distance-comparison abbr { text-decoration: none; }
+    .keep-together { white-space: nowrap; }
+    .topic-panel .takeaway { margin-top: 20px; }
+    .topic-panel ol, .topic-panel ul { padding-left: 24px; margin: 0; }
+    .topic-panel li + li { margin-top: 12px; }
+    .topic-sources { margin-top: 22px !important; color: var(--muted); font-size: 12px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+    .card { min-width: 0; border: 1px solid var(--rule); border-radius: 4px; background: #1c2229; }
+    .media { position: relative; background: #101418; }
+    .screen { position: relative; aspect-ratio: 16/9; overflow: hidden; }
+    .media img, .media video { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .media video { background: #000; }
+    .meta { padding: 12px 14px 16px; }
+    .title { margin: 0 0 8px; font-size: 18px; font-weight: 600; line-height: 1.35; }
+    .protein-name { color: var(--accent); }
+    .desc { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    .card-featured { grid-column: 1 / -1; }
     .card-featured .meta { padding: 22px; }
     .card-featured .title { font-size: clamp(22px, 3vw, 28px); }
-    .featured-label { margin: 0 0 8px; color: var(--accent); font-size: 13px; font-weight: 700; }
-    .media { position: relative; background: #0a0f18; overflow: hidden; }
-    .screen { position: relative; aspect-ratio: 16/9; }
-    .media img, .media video { width: 100%; height: 100%; object-fit: contain; display: block; }
-    .media video { background:#000; }
+    .overlay { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; }
+    .playbtn { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 16px; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); color: var(--text); font-size: 14px; font-weight: 700; cursor: pointer; }
+    .playbtn:hover { background: var(--text); color: var(--paper); }
+    .playbtn svg { width: 18px; height: 18px; }
+    .controls { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #222a32; color: var(--text); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .15s ease; }
+    .controls.visible, .media:focus-within .controls { opacity: 1; visibility: visible; pointer-events: auto; }
+    .controls .btn { width: 36px; height: 36px; border: 0; border-radius: 0; cursor: pointer; color: var(--text); background: transparent; display: grid; place-items: center; flex: 0 0 auto; }
+    .controls .btn:hover { background: #34414d; }
+    .controls :focus-visible { outline-color: var(--text); outline-offset: 1px; }
+    .controls .btn svg { width: 18px; height: 18px; }
+    .controls .seek { -webkit-appearance: none; appearance: none; height: 4px; background: #718291; flex: 1 1 auto; min-width: 0; cursor: pointer; }
+    .controls .seek::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--text); }
+    .controls .seek::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--text); border: 0; }
+    .controls .time { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--text); min-width: 80px; text-align: right; flex: 0 0 auto; }
+    .media.hide-ui { cursor: none; }
+    .video-note { position: relative; margin: 0; padding: 18px 48px 18px 18px; border-left: 3px solid var(--accent); background: var(--paper); color: var(--text); cursor: auto; }
+    .video-note h3 { margin: 0 0 8px; font-size: 15px; }
+    .video-note p { margin: 0; font-size: 14px; line-height: 1.65; }
+    .note-close { position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; color: var(--text); background: transparent; cursor: pointer; }
+    .note-close:hover { background: #34414d; }
+    .note-close svg { width: 20px; height: 20px; }
+    .topic-close { top: 10px; right: 10px; font-size: 25px; }
+    .error { color: #ffb4a7; font-size: 14px; line-height: 1.5; }
     body.has-expanded-video { overflow: hidden; }
-    .card:has(.is-expanded) { transform: none; transition: none; }
     .media.is-expanded { position: fixed; inset: 0; z-index: 1000; }
     .media:is(:fullscreen, .is-expanded) { width: 100%; height: 100%; display: flex; flex-direction: column; background: #000; }
     .media:is(:fullscreen, .is-expanded) .screen { flex: 1; min-height: 0; aspect-ratio: auto; }
-    .video-note { position: relative; margin: 12px; padding: 16px 44px 16px 16px; border: 1px solid var(--ring); border-radius: 16px; background: rgba(18, 28, 47, .95); color: var(--text); cursor: auto; }
-    .video-note h3 { margin: 0 0 8px; font-size: 15px; }
-    .video-note p { margin: 0; font-size: 14px; line-height: 1.6; }
-    .note-close { position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; color: var(--text); background: transparent; cursor: pointer; }
-    .note-close:hover { background: rgba(255,255,255,.12); }
-    .note-close svg { width: 20px; height: 20px; }
-    .media:is(:fullscreen, .is-expanded) .video-note { position: absolute; right: 12px; top: 12px; width: 340px; max-height: calc(100% - 100px); overflow-y: auto; z-index: 6; }
+    .media:is(:fullscreen, .is-expanded) .video-note { position: absolute; right: 20px; top: 20px; width: 340px; max-height: calc(100% - 100px); overflow-y: auto; z-index: 6; }
+    footer { text-align: center; color: var(--muted); padding: 24px 16px 44px; font-size: 13px; }
+    @media (max-width: 800px) {
+      #topic-scale .topic-columns { grid-template-columns: 1fr; gap: 24px; }
+    }
     @media (max-width: 600px) {
+      .topic-columns { grid-template-columns: 1fr; gap: 24px; }
+      .topic-panel { padding: 18px; }
+      .topic-toggle { padding: 10px 12px; }
       .card-featured .screen { aspect-ratio: 4/3; }
-      .media:is(:fullscreen, .is-expanded) .video-note { position: relative; top: auto; right: auto; width: auto; max-height: 35dvh; flex-shrink: 0; }
       .card-featured .meta { padding: 16px; }
+      .media:is(:fullscreen, .is-expanded) .video-note { position: relative; top: auto; right: auto; width: auto; max-height: 35dvh; flex-shrink: 0; }
     }
-
-    .overlay {
-      position: absolute; inset: 0; display: grid; place-items: center;
-      background: linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,.1));
-      opacity: 1; transition: opacity .2s ease;
-    }
-    .overlay[hidden] { display: none; }
-
-    .playbtn {
-      border: 0; background: rgba(10,20,40,.75);
-      border-radius: 999px; padding: 14px 18px; display: inline-flex; gap: 10px; align-items: center;
-      color: var(--text); font-weight: 600; cursor: pointer;
-      box-shadow: 0 8px 30px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
-      transition: transform .12s ease, background .2s ease; backdrop-filter: blur(6px);
-    }
-    .playbtn:hover { transform: translateY(-1px); background: rgba(20,40,80,.8); }
-    .playbtn svg { width: 18px; height: 18px; }
-
-    /* --- Custom control bar (one line, auto-hide) --- */
-    .controls {
-      position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
-      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
-      border-top-left-radius: 12px; border-top-right-radius: 12px;
-      background: linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,.25));
-      backdrop-filter: blur(4px);
-      opacity: 0; visibility: hidden; transform: translateY(6px);
-      transition: opacity .25s ease, transform .25s ease;
-      pointer-events: none; /* not clickable when hidden */
-    }
-    .controls.visible, .media:focus-within .controls { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
-    .controls .btn {
-      width: 36px; height: 36px; border-radius: 10px; border: 0; cursor: pointer; color: var(--text);
-      background: rgba(0,0,0,.55); display: grid; place-items: center;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
-      flex: 0 0 auto;
-    }
-    .controls .btn:hover { background: rgba(0,0,0,.7); }
-    .controls .btn svg { width: 18px; height: 18px; }
-    .controls .seek { -webkit-appearance:none; appearance:none; height:6px; border-radius:999px; background: rgba(255,255,255,.25);
-      flex: 1 1 auto; min-width: 0;
-    }
-    .controls .seek::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,.35); }
-    .controls .seek::-moz-range-thumb    { width:14px; height:14px; border-radius:50%; background:#fff; border:0; box-shadow:0 0 0 2px rgba(0,0,0,.35); }
-    .controls .time { font-size: 13px; color: #e8eefce6; min-width: 88px; text-align: right; flex: 0 0 auto; }
     @media (max-width: 400px) {
       .controls { gap: 4px; padding: 8px 6px; }
       .controls .btn { width: 32px; }
       .controls .time { min-width: 70px; font-size: 11px; }
     }
-
-    /* Hide cursor when UI hidden (e.g., in fullscreen) */
-    .media.hide-ui { cursor: none; }
-
-    .meta { padding: 12px 14px 16px; }
-    .title { margin: 0 0 8px; font-size: 18px; line-height: 1.35; }
-    .desc { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.6; }
-    .error { color: #ffd0ca; font-size: 14px; line-height: 1.5; }
-    .learn { margin-bottom: 24px; }
-    .learn-heading { margin: 0 0 10px; color: var(--muted); font-size: 14px; font-weight: 500; }
-    .topic-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
-    .topic-toggle { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid rgba(122,162,255,.25); border-radius: 999px; background: rgba(18,22,34,.7); color: var(--text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
-    .topic-toggle::after { content: '+'; margin-left: auto; color: var(--accent); font-size: 20px; line-height: 1; }
-    .topic-toggle:hover, .topic-toggle[aria-expanded="true"] { background: #1a2842; border-color: var(--accent); }
-    .topic-toggle[aria-expanded="true"]::after { content: '×'; }
-    .topic-panel { position: relative; margin-top: 12px; padding: 24px; border: 1px solid var(--ring); border-radius: 16px; background: #121b2c; line-height: 1.65; }
-    .topic-panel h2 { margin: 0 40px 18px 0; font-size: clamp(20px, 3vw, 26px); line-height: 1.3; }
-    .topic-panel h3 { margin: 0 0 8px; font-size: 17px; }
-    .topic-panel p { margin: 0 0 12px; }
-    .topic-panel p:last-child { margin-bottom: 0; }
-    .topic-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
-    .topic-panel .equation { padding: 12px 14px; background: #0b1322; border-radius: 10px; color: #c7d8ff; font-size: clamp(14px, 2vw, 18px); overflow-wrap: anywhere; }
-    .topic-panel .takeaway { margin-top: 18px; padding-left: 14px; border-left: 3px solid var(--accent); }
-    .topic-panel ol, .topic-panel ul { padding-left: 24px; margin: 0; }
-    .topic-panel li + li { margin-top: 10px; }
-    .topic-sources { margin-top: 20px !important; color: var(--muted); font-size: 12px; }
-    .topic-close { top: 10px; right: 10px; font-size: 25px; }
-    @media (max-width: 600px) {
-      .topic-columns { grid-template-columns: 1fr; gap: 20px; }
-      .topic-panel { padding: 18px; }
-      .topic-toggle { padding: 10px 12px; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { transition: none !important; }
-      .card:hover, .card:focus-within { transform: none; }
-    }
-
-    footer { text-align:center; color: var(--muted); padding: 24px 16px 44px; font-size: 13px; }
-    a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#main">Ugrás a tartalomra</a>
   <header>
     <h1>Kutatók Éjszakája - Fehérjeszimulációk</h1>
     <p class="intro">A fehérjék a sejtek apró munkásai: segítenek megemészteni az ételt, vasat tárolnak, vagy a DNS-re vigyáznak. Közben folyton mozognak. Ezeken a számítógépes modelleken megnézheted, hogyan.</p>
     <p class="hint">Válassz egy videót, és indítsd el! A jobb alsó gombbal teljes képernyőre válthatsz. A videóknak nincs hangjuk.</p>
   </header>
 
-  <main class="container">
+  <main id="main" class="container" tabindex="-1">
     <section class="learn" aria-labelledby="learn-title">
-      <h2 id="learn-title" class="learn-heading">A videók mögött: kattints egy témára!</h2>
+      <h2 id="learn-title" class="learn-heading">Tudj meg többet a szimulációkról!</h2>
       <div class="topic-buttons" role="group" aria-label="További magyarázatok">
         <button type="button" id="topic-scale-button" class="topic-toggle" aria-expanded="false" aria-controls="topic-scale">Méret és idő</button>
         <button type="button" id="topic-computer-button" class="topic-toggle" aria-expanded="false" aria-controls="topic-computer">Mit csinál a gép?</button>
@@ -185,16 +140,16 @@
           <div>
             <h3>Méret: nanométeres skála</h3>
             <p>A fehérjék méretét gyakran nanométerben, röviden nm-ben adjuk meg. Egy nanométer a méter egymilliárdod része.</p>
-            <p class="equation">1.000.000.000 nm = 1 m</p>
+            <p class="equation"><span class="keep-together">1.000.000.000 nm</span> <span class="keep-together">= 1 m</span></p>
             <p>Képzeld el, hogy 1 nm-t 1 méteresre nagyítunk. Ugyanezzel a nagyítással egy méterből egymilliárd méter lenne!</p>
-            <p class="equation">1.000.000.000 m ≈ a Föld és a Hold átlagos távolságának 2,6-szerese</p>
+            <p class="equation distance-comparison"><span class="keep-together">1.000.000.000 m</span> ≈ <span class="keep-together">2,6 × <abbr title="A Föld és a Hold átlagos távolsága">Föld-Hold-távolság</abbr></span></p>
           </div>
           <div>
             <h3>Apró helyi mozgások: pikoszekundumos skála</h3>
             <p>A fehérjék egyes helyi rezgései, apró elmozdulásai pikoszekundumok alatt zajlanak. Egy pikoszekundum, röviden ps, a másodperc ezermilliárdod része.</p>
-            <p class="equation">1.000.000.000.000 ps = 1 s</p>
+            <p class="equation"><span class="keep-together">1.000.000.000.000 ps</span> <span class="keep-together">= 1 s</span></p>
             <p>Ha 1 ps mozgását 1 másodpercig néznénk, ugyanilyen lassítással egyetlen másodperc lejátszása közel 32 ezer évig tartana.</p>
-            <p class="equation">1.000.000.000.000 s ≈ 32.000 év</p>
+            <p class="equation"><span class="keep-together">1.000.000.000.000 s</span> <span class="keep-together">≈ 32.000 év</span></p>
           </div>
         </div>
         <p class="takeaway">A fehérjék nagyobb alakváltozásai ennél lassabbak is lehetnek. A videó lejátszási ideje és a molekulák világában eltelt idő két külön dolog.</p>
@@ -427,7 +382,12 @@
       const heading = document.createElement('h2');
       heading.id = `title-${index}`;
       heading.className = 'title';
-      heading.textContent = item.title;
+      const separator = item.title.indexOf(':');
+      const nameEnd = separator === -1 ? item.title.length : separator;
+      const proteinName = document.createElement('span');
+      proteinName.className = 'protein-name';
+      proteinName.textContent = item.title.slice(0, nameEnd);
+      heading.append(proteinName, document.createTextNode(item.title.slice(nameEnd)));
       const description = document.createElement('p');
       description.id = `desc-${index}`;
       description.className = 'desc';
@@ -436,12 +396,6 @@
       error.className = 'error';
       error.hidden = true;
       error.setAttribute('role', 'status');
-      if (item.featured) {
-        const label = document.createElement('p');
-        label.className = 'featured-label';
-        label.textContent = 'Kiemelt videó • Fázisszétválás';
-        meta.appendChild(label);
-      }
       meta.append(heading, description, error);
       card.append(media, meta);
 
