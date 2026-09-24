@@ -321,6 +321,9 @@
       return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
     }
 
+    let activeVideo = null;
+    let playbackRequest = 0;
+
     function renderCard(item, index) {
       const card = document.createElement('article');
       card.className = item.featured ? 'card card-featured' : 'card';
@@ -452,12 +455,19 @@
         syncPlayback();
       }
       async function startPlaying() {
+        if (!video.paused) return;
+        const request = ++playbackRequest;
+        if (activeVideo && activeVideo !== video) activeVideo.pause();
+        activeVideo = video;
         error.hidden = true;
         try {
-          await video.play();
+          const playback = video.play();
+          // Reflect the request immediately, including while media is loading.
+          syncPlayback();
+          await playback;
         } catch (reason) {
-          // Scrolling away or pausing during loading can cancel play normally.
-          if (reason.name !== 'AbortError') {
+          // Ignore canceled or superseded requests after a rapid video switch.
+          if (request === playbackRequest && reason.name !== 'AbortError') {
             reportError('A videó nem indult el. Próbáld újra, vagy frissítsd az oldalt.');
           }
         }
