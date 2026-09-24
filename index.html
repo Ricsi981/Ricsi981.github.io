@@ -1,34 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="hu">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kutatók Éjszakája - Fehérjeszimulációk</title>
-  <meta name="description" content="Molekuláris dinamika szimulációs filmek" />
+  <meta name="description" content="Mozgó fehérjék, DNS-védelem és apró fehérjecseppek. Szimulációs videók közérthető magyarázatokkal az ELTE Kutatók Éjszakáján." />
   <style>
     :root {
       --bg: #0b0d12; --card: #121622; --text: #e8eefc;
       --muted: #a9b3c7; --accent: #7aa2ff; --ring: rgba(122,162,255,.35);
     }
     * { box-sizing: border-box; }
-    html, body { height: 100%; }
+    [hidden] { display: none !important; }
+    html { min-height: 100%; }
     body {
       margin: 0;
+      min-height: 100vh;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
       color: var(--text);
       background:
         radial-gradient(1200px 800px at 10% -10%, #172036 0, transparent 60%),
         radial-gradient(900px 700px at 110% 10%, #13203b 0, transparent 60%),
         var(--bg);
+      background-repeat: no-repeat;
     }
     header { padding: 28px 18px 12px; text-align: center; }
-    header h1 { margin: 0 0 6px; font-weight: 700; letter-spacing: .2px; }
+    header h1 { margin: 0 0 6px; font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 700; letter-spacing: .2px; overflow-wrap: anywhere; }
     header p { margin: 0; color: var(--muted); }
+    header .intro { max-width: 720px; margin: 12px auto; line-height: 1.6; }
+    header .hint { font-size: 14px; line-height: 1.5; }
+    .brand { display: inline-block; max-width: 100%; margin-bottom: 20px; padding: 16px 22px; background: #fff; border-radius: 8px; }
+    .brand img { display: block; width: 286px; max-width: 100%; height: auto; }
+    :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 
     .container { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px),1fr)); gap: 16px; }
 
     .card {
+      min-width: 0;
       background: linear-gradient(to bottom right, rgba(255,255,255,.04), rgba(255,255,255,.02));
       border: 1px solid rgba(255,255,255,.06);
       box-shadow: 0 10px 30px rgba(0,0,0,.35);
@@ -38,15 +47,16 @@
     .card:focus-within, .card:hover { transform: translateY(-2px); border-color: var(--ring); box-shadow: 0 18px 40px rgba(30,60,120,.3); }
 
     .media { position: relative; aspect-ratio: 16/9; background: #0a0f18; overflow: hidden; }
-    .media img, .media video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .media img, .media video { width: 100%; height: 100%; object-fit: contain; display: block; }
     .media video { background:#000; }
+    .media:fullscreen { width: 100%; height: 100%; aspect-ratio: auto; background: #000; }
 
     .overlay {
       position: absolute; inset: 0; display: grid; place-items: center;
       background: linear-gradient(to top, rgba(0,0,0,.45), rgba(0,0,0,.1));
       opacity: 1; transition: opacity .2s ease;
     }
-    .media.playing .overlay { opacity: 0; pointer-events: none; }
+    .overlay[hidden] { display: none; }
 
     .playbtn {
       border: 0; background: rgba(10,20,40,.75);
@@ -65,11 +75,11 @@
       border-top-left-radius: 12px; border-top-right-radius: 12px;
       background: linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,.25));
       backdrop-filter: blur(4px);
-      opacity: 0; transform: translateY(6px);
+      opacity: 0; visibility: hidden; transform: translateY(6px);
       transition: opacity .25s ease, transform .25s ease;
       pointer-events: none; /* not clickable when hidden */
     }
-    .controls.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .controls.visible, .media:focus-within .controls { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
     .controls .btn {
       width: 36px; height: 36px; border-radius: 10px; border: 0; cursor: pointer; color: var(--text);
       background: rgba(0,0,0,.55); display: grid; place-items: center;
@@ -78,7 +88,7 @@
     }
     .controls .btn:hover { background: rgba(0,0,0,.7); }
     .controls .btn svg { width: 18px; height: 18px; }
-    .controls .seek { -webkit-appearance:none; appearance:none; height:6px; border-radius:999px; background: rgba(255,255,255,.25); outline: none;
+    .controls .seek { -webkit-appearance:none; appearance:none; height:6px; border-radius:999px; background: rgba(255,255,255,.25);
       flex: 1 1 auto; min-width: 0;
     }
     .controls .seek::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,.35); }
@@ -89,8 +99,13 @@
     .media.hide-ui { cursor: none; }
 
     .meta { padding: 12px 14px 16px; }
-    .title { margin: 0 0 6px; font-size: 16px; line-height: 1.25; }
-    .desc { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+    .title { margin: 0 0 8px; font-size: 18px; line-height: 1.35; }
+    .desc { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.6; }
+    .error { color: #ffd0ca; font-size: 14px; line-height: 1.5; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+      .card:hover, .card:focus-within { transform: none; }
+    }
 
     footer { text-align:center; color: var(--muted); padding: 24px 0 44px; font-size: 13px; }
     a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
@@ -98,12 +113,17 @@
 </head>
 <body>
   <header>
+    <a class="brand" href="https://www.elte.hu/" aria-label="Eötvös Loránd Tudományegyetem: honlap">
+      <img src="assets/images/elte-logo.svg" alt="Eötvös Loránd Tudományegyetem" width="286" height="52" />
+    </a>
     <h1>Kutatók Éjszakája - Fehérjeszimulációk</h1>
-    <p>Kattints a <strong>fehérjére</strong>, hogy megnézd hogyan mozog. Dupla kattintással a videót is kinagyíthatod.</p>
+    <p class="intro">A fehérjék a sejtek apró munkásai: segítenek megemészteni az ételt, vasat tárolnak, vagy a DNS-re vigyáznak. Közben folyton mozognak. Ezeken a számítógépes modelleken megnézheted, hogyan.</p>
+    <p class="hint">Válassz egy videót, és indítsd el! A jobb alsó gombbal teljes képernyőre válthatsz. A videóknak nincs hangjuk.</p>
   </header>
 
   <main class="container">
-    <div id="gallery" class="grid" aria-live="polite"></div>
+    <div id="gallery" class="grid"></div>
+    <noscript>A videógaléria megjelenítéséhez engedélyezd a JavaScriptet a böngésződben.</noscript>
   </main>
 
 <footer>
@@ -114,139 +134,235 @@
 
   <script>
     const VIDEOS = [
-      { title: "Alfa-amiláz", mp4: "assets/videos/alpha_amylase_softShadows.mp4", webm: "assets/videos/alpha_amylase_softShadows.webm",
-        description: "Keményítőt és glikogént bontó emésztőenzim, főként a nyálmirigyek és a hasnyálmirigy termeli." },
-      { title: "Apoptoszóma", mp4: "assets/videos/apopt_3JBT-assembly1.mp4", webm: "assets/videos/apopt_3JBT-assembly1.webm",
-        description: "Az Apaf-1 által szervezett fehérjekomplex, amely aktiválja a kaszpáz-9-et és elindítja a programozott sejthalált (apoptózist)." },
-      { title: "Ferritin", mp4: "assets/videos/ferritin.mp4", webm: "assets/videos/ferritin.webm",
-        description: "24 alegységből álló üreges „nanoketrec”, amely akár ~4500 vasatomot képes biztonságosan raktározni." },
-      { title: "p53", mp4: "assets/videos/p53_2ahi.mp4", webm: "assets/videos/p53_2ahi.webm",
-        description: "Daganat-szuppresszor fehérje. A „genom őre” néven ismert transzkripciós faktor; génje az emberi daganatok több mint 50%-ában mutált." },
-      { title: "SSB4", mp4: "assets/videos/fold_ecoli_ssb_4.mp4", webm: "assets/videos/fold_ecoli_ssb_4.webm",
-        description: "Egyszálú DNS-kötő fehérje. Az E. coli SSB funkcionális homotetramer, amely védi az egyszálú DNS-t és központi a replikációban, javításban és rekombinációban." },
-      { title: "LC8", mp4: "assets/videos/lc8.mp4", webm: "assets/videos/lc8.webm",
-        description: "Kisméretű dimer „hub” fehérje, amely sok kliensfehérje dimerizációját és nagy fehérjekomplexek összeállását segíti." },
+      { title: "Alfa-amiláz: az emésztés már a szádban elkezdődik", file: "alpha_amylase_softShadows",
+        description: "Ha sokáig rágod a kenyeret, édeskés íze lesz. Ebben a nyáladban lévő alfa-amiláz segít: a keményítő hosszú láncait kisebb cukrokra bontja. A videón ezt a fehérjét láthatod mozgás közben." },
+      { title: "Apoptoszóma: amikor egy sejtnek búcsúznia kell", file: "apopt_3JBT-assembly1",
+        description: "A szervezetnek néha meg kell válnia egy sérült vagy feleslegessé vált sejttől. Ez a kerékszerű fehérjecsoport segít elindítani a sejt rendezett lebontását, hogy a környező sejtek ne sérüljenek." },
+      { title: "Ferritin: a sejt vasraktára", file: "ferritin",
+        description: "Vas nélkül nem tudnánk oxigént szállítani a vérünkben, de a szabadon lévő vas kárt is okozhat a sejtekben. A ferritin üreges belsejében tárolja a tartalékot. Huszonnégy fehérjedarab áll össze hozzá egy apró, zárt tárolóvá." },
+      { title: "p53: szünet a javítás idejére", file: "p53_2ahi",
+        description: "A DNS a sejtek örökítőanyaga. Ha megsérül, a p53 segít leállítani a sejt osztódását, amíg a hibát kijavítják. Ha túl nagy a baj, a sejt lebontását is segítheti. Így véd a hibás sejtek elszaporodásától." },
+      { title: "SSB: védelem a DNS-nek", file: "ssb",
+        description: "Másoláskor a DNS két szála különválik, mint egy cipzár két oldala. Az SSB a szabaddá vált szálhoz kapcsolódik: védi, és segít, hogy ne gabalyodjon össze. Figyeld meg, mennyire mozgékonyak a fehérje kilógó részei!" },
+      { title: "SSB: sok fehérje, egy apró csepp", file: "ssb_llps",
+        description: "Itt már sok SSB-fehérjét látsz együtt. Bizonyos körülmények között összegyűlnek, és folyadékszerű cseppet alkotnak. A csepp belsejében továbbra is mozognak. Ezt a jelenséget fázisszétválásnak hívják, angol rövidítése LLPS." },
+      { title: "LC8: összeköt két fehérjét", file: "lc8",
+        description: "Sok fehérje csak másokkal együtt tudja elvégezni a feladatát. Az LC8 két egyforma részből áll, és más fehérjéket kapcsolhat párba. Olyasmi, mint egy apró összekötő elem, amely segít összeállítani egy nagyobb szerkezetet." },
     ];
 
     const ICONS = {
-      play: "M8 5v14l11-7z", pause: "M6 5h4v14H6zm8 0h4v14h-4z",
-      volume: "M3 10v4h4l5 5V5L7 10H3zm13.54 2a4.5 4.5 0 0 0-2.04-3.77v7.54A4.5 4.5 0 0 0 16.54 12zm2.46 0a7 7 0 0 1-3.17 5.9l1.17 1.61A9 9 0 0 0 22 12a9 9 0 0 0-4.99-8.07l-1.17 1.61A7 7 0 0 1 19 12z",
-      mute: "M16.5 12 21 16.5 19.5 18l-4.5-4.5L10 18l-3-3h-4v-6h4l3-3 5 4.5L19.5 6 21 7.5 16.5 12z",
-      fullscreen: "M7 14H5v5h5v-2H7v-3zm12 5h-5v-2h3v-3h2v5zM7 5h3V3H5v5h2V5zm10 0v3h3v2h-5V3h2v2z",
+      play: 'M8 5v14l11-7z',
+      pause: 'M6 5h4v14H6zm8 0h4v14h-4z',
+      fullscreen: 'M5 9V5h4V3H3v6h2zm10-6v2h4v4h2V3h-6zM3 15v6h6v-2H5v-4H3zm16 0v4h-4v2h6v-6h-2z',
+      exitFullscreen: 'M3 7h4V3h2v6H3V7zm12-4h2v4h4v2h-6V3zM3 15h6v6H7v-4H3v-2zm12 0h6v2h-4v4h-2v-6z',
     };
-    const $ = s => document.querySelector(s);
-    function icon(pathD){ const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
-      svg.setAttribute("viewBox","0 0 24 24"); svg.setAttribute("aria-hidden","true");
-      const p=document.createElementNS(svg.namespaceURI,"path"); p.setAttribute("d",pathD); p.setAttribute("fill","currentColor");
-      svg.appendChild(p); return svg; }
 
-    // Auto-poster from first frame (same-origin)
-    function autoPoster(video){
-      if (video.dataset.posterReady) return;
-      const capture=()=>{ const w=video.videoWidth||1280, h=video.videoHeight||Math.round(w*9/16); if(!w||!h) return;
-        const c=document.createElement('canvas'); c.width=w; c.height=h; const ctx=c.getContext('2d'); ctx.drawImage(video,0,0,w,h);
-        video.setAttribute('poster', c.toDataURL('image/jpeg', .82)); video.dataset.posterReady='1'; };
-      const seek=()=>{ const onSeeked=()=>{ video.removeEventListener('seeked', onSeeked); capture(); }; video.addEventListener('seeked', onSeeked, {once:true});
-        try{ video.currentTime=0; } catch{ capture(); } };
-      if (video.readyState>=2) seek(); else video.addEventListener('loadeddata', ()=>seek(), {once:true});
+    function icon(path) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('aria-hidden', 'true');
+      const shape = document.createElementNS(svg.namespaceURI, 'path');
+      shape.setAttribute('d', path);
+      shape.setAttribute('fill', 'currentColor');
+      svg.appendChild(shape);
+      return svg;
     }
 
-    function renderCard(item){
-      const card=document.createElement('article'); card.className='card'; card.tabIndex=0;
-      const media=document.createElement('div'); media.className='media';
+    function button(label, path, className = 'btn') {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.className = className;
+      element.title = label;
+      element.setAttribute('aria-label', label);
+      element.appendChild(icon(path));
+      return element;
+    }
 
-      const video=document.createElement('video');
-      video.setAttribute('playsinline',''); video.setAttribute('muted',''); video.setAttribute('loop',''); video.setAttribute('preload','metadata');
-      video.crossOrigin='anonymous'; video.setAttribute('aria-label', item.title); video.controls=false;
+    function fmt(seconds) {
+      const value = Math.max(0, Math.floor(seconds || 0));
+      return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
+    }
 
-      const s1=document.createElement('source'); s1.src=item.mp4; s1.type='video/mp4'; video.appendChild(s1);
-      if (item.webm){ const s2=document.createElement('source'); s2.src=item.webm; s2.type='video/webm'; video.appendChild(s2); }
-      if (item.poster) video.setAttribute('poster', item.poster); else autoPoster(video);
+    function renderCard(item, index) {
+      const card = document.createElement('article');
+      card.className = 'card';
+      card.setAttribute('aria-labelledby', `title-${index}`);
+      const media = document.createElement('div');
+      media.className = 'media';
+      const video = document.createElement('video');
+      video.src = `assets/videos/${item.file}.mp4`;
+      video.poster = `assets/posters/${item.file}.jpg`;
+      video.playsInline = true;
+      video.muted = true;
+      video.loop = true;
+      video.preload = 'none';
+      video.setAttribute('aria-label', item.title);
+      video.setAttribute('aria-describedby', `desc-${index}`);
 
-      const overlay=document.createElement('div'); overlay.className='overlay';
-      const playBtn=document.createElement('button'); playBtn.className='playbtn';
-      playBtn.appendChild(icon(ICONS.play)); playBtn.appendChild(document.createTextNode(' Lejátszás'));
-      playBtn.setAttribute('aria-label',`Play ${item.title}`); overlay.appendChild(playBtn);
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      const playBtn = button(`${item.title}: lejátszás`, ICONS.play, 'playbtn');
+      playBtn.appendChild(document.createTextNode('Lejátszás'));
+      overlay.appendChild(playBtn);
 
-      const controls=document.createElement('div'); controls.className='controls';
-      const ppBtn=document.createElement('button'); ppBtn.className='btn'; ppBtn.title='Play/Pause'; ppBtn.appendChild(icon(ICONS.play));
-      const seek=document.createElement('input'); seek.type='range'; seek.className='seek'; seek.min=0; seek.step=0.05; seek.value=0;
-      const time=document.createElement('div'); time.className='time'; time.textContent='0:00 / 0:00';
-      const volBtn=document.createElement('button'); volBtn.className='btn'; volBtn.title='Toggle sound'; volBtn.appendChild(icon(ICONS.mute));
-      const fsBtn=document.createElement('button'); fsBtn.className='btn'; fsBtn.title='Fullscreen'; fsBtn.appendChild(icon(ICONS.fullscreen));
-      controls.append(ppBtn, seek, time, volBtn, fsBtn);
-
+      const controls = document.createElement('div');
+      controls.className = 'controls';
+      const ppBtn = button('Lejátszás', ICONS.play);
+      const seek = document.createElement('input');
+      seek.type = 'range';
+      seek.className = 'seek';
+      seek.min = 0;
+      seek.max = 0;
+      seek.step = 0.05;
+      seek.value = 0;
+      seek.disabled = true;
+      seek.setAttribute('aria-label', 'Videó időpontja');
+      const time = document.createElement('span');
+      time.className = 'time';
+      time.textContent = '0:00 / 0:00';
+      time.setAttribute('aria-hidden', 'true');
+      const fsBtn = button('Teljes képernyő', ICONS.fullscreen);
+      fsBtn.hidden = !media.requestFullscreen && !video.webkitEnterFullscreen;
+      controls.append(ppBtn, seek, time, fsBtn);
       media.append(video, overlay, controls);
 
-      const meta=document.createElement('div'); meta.className='meta';
-      const h3=document.createElement('h3'); h3.className='title'; h3.textContent=item.title;
-      const p=document.createElement('p'); p.className='desc'; p.textContent=item.description||'';
-      meta.append(h3,p); card.append(media,meta);
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      const heading = document.createElement('h2');
+      heading.id = `title-${index}`;
+      heading.className = 'title';
+      heading.textContent = item.title;
+      const description = document.createElement('p');
+      description.id = `desc-${index}`;
+      description.className = 'desc';
+      description.textContent = item.description;
+      const error = document.createElement('p');
+      error.className = 'error';
+      error.hidden = true;
+      error.setAttribute('role', 'status');
+      meta.append(heading, description, error);
+      card.append(media, meta);
 
-      // --- Interactions ---
-      function updatePlayIcon(){ ppBtn.innerHTML=''; ppBtn.appendChild(icon(video.paused?ICONS.play:ICONS.pause)); }
-      function showControls(){ controls.classList.add('visible'); media.classList.remove('hide-ui'); }
-      function hideControls(){ controls.classList.remove('visible'); media.classList.add('hide-ui'); }
-      function startPlaying(){
-        media.classList.add('playing'); video.controls=false; video.muted=true;
-        video.play().then(()=>{ updatePlayIcon(); showControls(); }).catch(()=>{});
+      let hideTimer;
+      function showControls() {
+        clearTimeout(hideTimer);
+        controls.classList.add('visible');
+        media.classList.remove('hide-ui');
       }
-
-      // Hover-driven visibility in grid view
-      let over=false, hideTimer=null;
-      function inFS(){ return document.fullscreenElement===video || document.fullscreenElement===media; }
-
-      const enter = ()=>{ over=true; showControls(); };
-      const leave = ()=>{ over=false; if (!inFS()) hideControls(); };
-      media.addEventListener('pointerenter', enter); media.addEventListener('pointerleave', leave);
-      // Fallback for very old browsers:
-      media.addEventListener('mouseenter', enter); media.addEventListener('mouseleave', leave); /* mouse vs pointer. :contentReference[oaicite:1]{index=1} */
-
-      // Auto-hide in fullscreen after inactivity
-      function fsBreathe(){ if (!inFS()) return; showControls(); clearTimeout(hideTimer);
-        hideTimer=setTimeout(()=>{ if (inFS() && !over) hideControls(); }, 2000);
+      function hideControls() {
+        if (video.paused || media.contains(document.activeElement)) return;
+        controls.classList.remove('visible');
+        media.classList.add('hide-ui');
       }
-      ['mousemove','pointermove','touchstart'].forEach(ev=>media.addEventListener(ev, fsBreathe, {passive:true}));
-      document.addEventListener('fullscreenchange', ()=>{ /* Fullscreen API. */  /* :contentReference[oaicite:2]{index=2} */
-        if (inFS()){ fsBreathe(); } else { clearTimeout(hideTimer); if (!over) hideControls(); }
-      });
-
-      // Controls
-      playBtn.addEventListener('click', startPlaying);
+      function scheduleHide() {
+        showControls();
+        if (!video.paused) hideTimer = setTimeout(hideControls, 2500);
+      }
+      function syncPlayback() {
+        const playing = !video.paused;
+        showControls();
+        // Move keyboard focus before hiding the overlay's play button.
+        if (playing && document.activeElement === playBtn) ppBtn.focus();
+        overlay.hidden = playing;
+        ppBtn.replaceChildren(icon(playing ? ICONS.pause : ICONS.play));
+        const label = playing ? 'Szünet' : 'Lejátszás';
+        ppBtn.title = label;
+        ppBtn.setAttribute('aria-label', label);
+        scheduleHide();
+      }
+      function reportError(message) {
+        error.textContent = message;
+        error.hidden = false;
+        syncPlayback();
+      }
+      async function startPlaying() {
+        error.hidden = true;
+        try {
+          await video.play();
+        } catch (reason) {
+          // Scrolling away or pausing during loading can cancel play normally.
+          if (reason.name !== 'AbortError') {
+            reportError('A videó nem indult el. Próbáld újra, vagy frissítsd az oldalt.');
+          }
+        }
+      }
+      function togglePlayback() {
+        if (video.paused) startPlaying();
+        else video.pause();
+      }
       overlay.addEventListener('click', startPlaying);
-      video.addEventListener('click', ()=>{ video.paused?video.play():video.pause(); });
-      ppBtn.addEventListener('click', ()=>{ video.paused?video.play():video.pause(); });
-      video.addEventListener('play', ()=>{ updatePlayIcon(); fsBreathe(); });
-      video.addEventListener('pause', ()=>{ updatePlayIcon(); if (!inFS() && !over) hideControls(); });
+      video.addEventListener('click', togglePlayback);
+      ppBtn.addEventListener('click', togglePlayback);
+      video.addEventListener('play', syncPlayback);
+      video.addEventListener('pause', syncPlayback);
+      video.addEventListener('error', () => reportError('A videót nem sikerült betölteni. Próbáld meg frissíteni az oldalt.'));
+      media.addEventListener('pointermove', scheduleHide);
+      media.addEventListener('pointerdown', scheduleHide);
+      media.addEventListener('pointerenter', scheduleHide);
+      media.addEventListener('pointerleave', hideControls);
+      media.addEventListener('focusin', showControls);
+      media.addEventListener('focusout', scheduleHide);
 
-      function fmt(t){ t=Math.max(0, t|0); const m=(t/60)|0, s=t%60; return `${m}:${s.toString().padStart(2,'0')}`; }
-      function updateTime(){ const d=isFinite(video.duration)?video.duration:0; time.textContent=`${fmt(video.currentTime)} / ${fmt(d)}`;
-        if (d>0 && !seek.dragging){ seek.max=d; seek.value=video.currentTime; } }
+      function updateTime() {
+        const duration = Number.isFinite(video.duration) ? video.duration : 0;
+        seek.disabled = duration <= 0;
+        seek.max = duration;
+        seek.value = video.currentTime;
+        seek.setAttribute('aria-valuetext', `${fmt(video.currentTime)} / ${fmt(duration)}`);
+        time.textContent = `${fmt(video.currentTime)} / ${fmt(duration)}`;
+      }
       video.addEventListener('timeupdate', updateTime);
       video.addEventListener('durationchange', updateTime);
-      seek.addEventListener('input', ()=>{ seek.dragging=true; showControls(); });
-      seek.addEventListener('change', ()=>{ video.currentTime=parseFloat(seek.value||'0'); seek.dragging=false; showControls(); });
+      seek.addEventListener('input', () => {
+        if (Number.isFinite(video.duration)) video.currentTime = Number(seek.value);
+        updateTime();
+        showControls();
+      });
 
-      function toggleSound(){ video.muted=!video.muted; volBtn.innerHTML=''; volBtn.appendChild(icon(video.muted?ICONS.mute:ICONS.volume)); showControls(); }
-      volBtn.addEventListener('click', toggleSound);
-
-      function goFullscreen(){ const el=video; if (el.requestFullscreen) el.requestFullscreen(); else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen(); else if (el.msRequestFullscreen) el.msRequestFullscreen(); }
-      fsBtn.addEventListener('click', goFullscreen);
-      media.addEventListener('dblclick', goFullscreen);
-
-      // Keyboard shortcuts
-      card.addEventListener('keydown', (e)=>{ if (e.code==='Space'){ e.preventDefault(); video.paused?video.play():video.pause(); }
-        if (e.key==='m'||e.key==='M'){ toggleSound(); } if (e.key==='f'||e.key==='F'){ goFullscreen(); } });
-
-      // Pause when scrolled offscreen
-      const io=new IntersectionObserver(es=>{ es.forEach(e=>{ if(!e.isIntersecting) video.pause(); }); }, {threshold:.1});
-      io.observe(card);
-
+      async function toggleFullscreen() {
+        try {
+          if (document.fullscreenElement === media) await document.exitFullscreen();
+          else if (media.requestFullscreen) await media.requestFullscreen();
+          else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+        } catch {
+          reportError('A teljes képernyőt most nem engedi a böngésző. A videót itt az oldalon is megnézheted.');
+        }
+      }
+      fsBtn.addEventListener('click', toggleFullscreen);
+      media.addEventListener('dblclick', event => {
+        if (event.target.closest('button, input')) return;
+        toggleFullscreen();
+      });
+      document.addEventListener('fullscreenchange', () => {
+        const fullscreen = document.fullscreenElement === media;
+        const label = fullscreen ? 'Kilépés a teljes képernyőből' : 'Teljes képernyő';
+        fsBtn.title = label;
+        fsBtn.setAttribute('aria-label', label);
+        fsBtn.replaceChildren(icon(fullscreen ? ICONS.exitFullscreen : ICONS.fullscreen));
+        scheduleHide();
+      });
+      // Let buttons and the seek slider keep their native keyboard behavior.
+      media.addEventListener('keydown', event => {
+        if (event.altKey || event.ctrlKey || event.metaKey || event.target === seek) return;
+        if (event.key.toLowerCase() === 'f') {
+          event.preventDefault();
+          toggleFullscreen();
+        }
+      });
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(entries => {
+          if (!entries[0].isIntersecting && document.fullscreenElement !== media) video.pause();
+        }, { threshold: 0.1 });
+        observer.observe(card);
+      }
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) video.pause();
+      });
       return card;
     }
 
-    function init(){ const root=$("#gallery"); VIDEOS.forEach(v=>root.appendChild(renderCard(v))); }
-    document.addEventListener('DOMContentLoaded', init);
+    const gallery = document.querySelector('#gallery');
+    VIDEOS.forEach((item, index) => gallery.appendChild(renderCard(item, index)));
   </script>
 </body>
 </html>
