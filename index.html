@@ -54,18 +54,21 @@
     .screen { position: relative; aspect-ratio: 16/9; }
     .media img, .media video { width: 100%; height: 100%; object-fit: contain; display: block; }
     .media video { background:#000; }
-    .media:fullscreen { width: 100%; height: 100%; display: flex; flex-direction: column; background: #000; }
-    .media:fullscreen .screen { flex: 1; min-height: 0; aspect-ratio: auto; }
+    body.has-expanded-video { overflow: hidden; }
+    .card:has(.is-expanded) { transform: none; transition: none; }
+    .media.is-expanded { position: fixed; inset: 0; z-index: 1000; }
+    .media:is(:fullscreen, .is-expanded) { width: 100%; height: 100%; display: flex; flex-direction: column; background: #000; }
+    .media:is(:fullscreen, .is-expanded) .screen { flex: 1; min-height: 0; aspect-ratio: auto; }
     .video-note { position: relative; margin: 12px; padding: 16px 44px 16px 16px; border: 1px solid var(--ring); border-radius: 16px; background: rgba(18, 28, 47, .95); color: var(--text); cursor: auto; }
     .video-note h3 { margin: 0 0 8px; font-size: 15px; }
     .video-note p { margin: 0; font-size: 14px; line-height: 1.6; }
     .note-close { position: absolute; top: 4px; right: 4px; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 50%; color: var(--text); background: transparent; cursor: pointer; }
     .note-close:hover { background: rgba(255,255,255,.12); }
     .note-close svg { width: 20px; height: 20px; }
-    .media:fullscreen .video-note { position: absolute; right: 12px; top: 12px; width: 340px; max-height: calc(100% - 100px); overflow-y: auto; z-index: 6; }
+    .media:is(:fullscreen, .is-expanded) .video-note { position: absolute; right: 12px; top: 12px; width: 340px; max-height: calc(100% - 100px); overflow-y: auto; z-index: 6; }
     @media (max-width: 600px) {
       .card-featured .screen { aspect-ratio: 4/3; }
-      .media:fullscreen .video-note { position: relative; top: auto; right: auto; width: auto; max-height: 35dvh; flex-shrink: 0; }
+      .media:is(:fullscreen, .is-expanded) .video-note { position: relative; top: auto; right: auto; width: auto; max-height: 35dvh; flex-shrink: 0; }
       .card-featured .meta { padding: 16px; }
     }
 
@@ -125,6 +128,30 @@
     .title { margin: 0 0 8px; font-size: 18px; line-height: 1.35; }
     .desc { margin: 0; color: var(--muted); font-size: 16px; line-height: 1.6; }
     .error { color: #ffd0ca; font-size: 14px; line-height: 1.5; }
+    .learn { margin-bottom: 24px; }
+    .learn-heading { margin: 0 0 10px; color: var(--muted); font-size: 14px; font-weight: 500; }
+    .topic-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+    .topic-toggle { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1px solid rgba(122,162,255,.25); border-radius: 999px; background: rgba(18,22,34,.7); color: var(--text); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+    .topic-toggle::after { content: '+'; margin-left: auto; color: var(--accent); font-size: 20px; line-height: 1; }
+    .topic-toggle:hover, .topic-toggle[aria-expanded="true"] { background: #1a2842; border-color: var(--accent); }
+    .topic-toggle[aria-expanded="true"]::after { content: '×'; }
+    .topic-panel { position: relative; margin-top: 12px; padding: 24px; border: 1px solid var(--ring); border-radius: 16px; background: #121b2c; line-height: 1.65; }
+    .topic-panel h2 { margin: 0 40px 18px 0; font-size: clamp(20px, 3vw, 26px); line-height: 1.3; }
+    .topic-panel h3 { margin: 0 0 8px; font-size: 17px; }
+    .topic-panel p { margin: 0 0 12px; }
+    .topic-panel p:last-child { margin-bottom: 0; }
+    .topic-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+    .topic-panel .equation { padding: 12px 14px; background: #0b1322; border-radius: 10px; color: #c7d8ff; font-size: clamp(14px, 2vw, 18px); overflow-wrap: anywhere; }
+    .topic-panel .takeaway { margin-top: 18px; padding-left: 14px; border-left: 3px solid var(--accent); }
+    .topic-panel ol, .topic-panel ul { padding-left: 24px; margin: 0; }
+    .topic-panel li + li { margin-top: 10px; }
+    .topic-sources { margin-top: 20px !important; color: var(--muted); font-size: 12px; }
+    .topic-close { top: 10px; right: 10px; font-size: 25px; }
+    @media (max-width: 600px) {
+      .topic-columns { grid-template-columns: 1fr; gap: 20px; }
+      .topic-panel { padding: 18px; }
+      .topic-toggle { padding: 10px 12px; }
+    }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition: none !important; }
       .card:hover, .card:focus-within { transform: none; }
@@ -142,6 +169,83 @@
   </header>
 
   <main class="container">
+    <section class="learn" aria-labelledby="learn-title">
+      <h2 id="learn-title" class="learn-heading">A videók mögött: kattints egy témára!</h2>
+      <div class="topic-buttons" role="group" aria-label="További magyarázatok">
+        <button type="button" id="topic-scale-button" class="topic-toggle" aria-expanded="false" aria-controls="topic-scale">Méret és idő</button>
+        <button type="button" id="topic-computer-button" class="topic-toggle" aria-expanded="false" aria-controls="topic-computer">Mit csinál a gép?</button>
+        <button type="button" id="topic-results-button" class="topic-toggle" aria-expanded="false" aria-controls="topic-results">Mit tanulunk a filmből?</button>
+        <button type="button" id="topic-llps-button" class="topic-toggle" aria-expanded="false" aria-controls="topic-llps">Miért fontos az LLPS?</button>
+      </div>
+
+      <section id="topic-scale" class="topic-panel" aria-labelledby="topic-scale-title" hidden>
+        <button type="button" class="note-close topic-close" aria-label="Méret és idő: bezárás">×</button>
+        <h2 id="topic-scale-title">Milyen aprók és milyen gyorsak a fehérjék?</h2>
+        <div class="topic-columns">
+          <div>
+            <h3>Méret: nanométeres skála</h3>
+            <p>A fehérjék méretét gyakran nanométerben, röviden nm-ben adjuk meg. Egy nanométer a méter egymilliárdod része.</p>
+            <p class="equation">1.000.000.000 nm = 1 m</p>
+            <p>Képzeld el, hogy 1 nm-t 1 méteresre nagyítunk. Ugyanezzel a nagyítással egy méterből egymilliárd méter lenne!</p>
+            <p class="equation">1.000.000.000 m ≈ a Föld és a Hold átlagos távolságának 2,6-szerese</p>
+          </div>
+          <div>
+            <h3>Apró helyi mozgások: pikoszekundumos skála</h3>
+            <p>A fehérjék egyes helyi rezgései, apró elmozdulásai pikoszekundumok alatt zajlanak. Egy pikoszekundum, röviden ps, a másodperc ezermilliárdod része.</p>
+            <p class="equation">1.000.000.000.000 ps = 1 s</p>
+            <p>Ha 1 ps mozgását 1 másodpercig néznénk, ugyanilyen lassítással egyetlen másodperc lejátszása közel 32 ezer évig tartana.</p>
+            <p class="equation">1.000.000.000.000 s ≈ 32.000 év</p>
+          </div>
+        </div>
+        <p class="takeaway">A fehérjék nagyobb alakváltozásai ennél lassabbak is lehetnek. A videó lejátszási ideje és a molekulák világában eltelt idő két külön dolog.</p>
+        <p class="topic-sources">A távolsághasonlat alapja: <a href="https://science.nasa.gov/moon/facts/">NASA: a Hold átlagos távolsága</a>.</p>
+      </section>
+
+      <section id="topic-computer" class="topic-panel" aria-labelledby="topic-computer-title" hidden>
+        <button type="button" class="note-close topic-close" aria-label="Mit csinál a gép: bezárás">×</button>
+        <h2 id="topic-computer-title">Hogyan készül a szimuláció?</h2>
+        <ol>
+          <li><strong>Felépítjük a molekulák modelljét.</strong> A részecskék egy-egy atomot vagy több atom csoportját is képviselhetik.</li>
+          <li><strong>A gép erőket számol.</strong> Fizikai szabályok alapján meghatározza, hogyan vonzzák vagy taszítják egymást a részecskék.</li>
+          <li><strong>A részecskék picit elmozdulnak.</strong> Az erők és az addigi mozgásuk alapján a gép kiszámolja a következő pillanat helyzeteit.</li>
+          <li><strong>Ezt nagyon sokszor megismételjük.</strong> Az elmentett helyzeteket egymás után megjelenítve mozgó képet kapunk.</li>
+        </ol>
+        <p class="equation takeaway">Erők kiszámítása → apró elmozdulás → újabb számítás → film</p>
+        <p>A film azt mutatja meg, hogyan viselkednek a molekulák a választott modellben. Az eredményeket kísérletekkel is összevetjük.</p>
+        <p class="topic-sources">Háttér: <a href="https://www.gromacs.org/about.html">GROMACS: molekuláris dinamika</a>.</p>
+      </section>
+
+      <section id="topic-results" class="topic-panel" aria-labelledby="topic-results-title" hidden>
+        <button type="button" class="note-close topic-close" aria-label="Mit tanulunk a filmből: bezárás">×</button>
+        <h2 id="topic-results-title">Mit tanulunk a filmből?</h2>
+        <ul>
+          <li><strong>Mozgásmintázatok → működés.</strong> Mely részek mozognak együtt? Hol nyílik ki egy rés, vagy hogyan változik a fehérje alakja munka közben?</li>
+          <li><strong>Stabilitás → mennyire marad egyben?</strong> Megvizsgálhatjuk, hogyan változik a szerkezete például más hőmérsékleten vagy eltérő sótartalmú környezetben.</li>
+          <li><strong>Kötőhelyek → hol kapcsolódhat hozzá valami?</strong> Megkereshetjük, hová illeszkedhet egy másik fehérje vagy egy kis molekula. További számításokkal a kötődés erősségét is becsülhetjük.</li>
+        </ul>
+        <p class="takeaway"><strong>Ez a gyógyszerfejlesztésben is segíthet.</strong> A számítások alapján kiválaszthatók olyan molekulák, amelyeket érdemes laboratóriumban megvizsgálni. A kötődés erősségét és egy lehetséges gyógyszer hatását önmagában a film megnézéséből nem lehet megállapítani.</p>
+      </section>
+
+      <section id="topic-llps" class="topic-panel" aria-labelledby="topic-llps-title" hidden>
+        <button type="button" class="note-close topic-close" aria-label="Miért fontos az LLPS: bezárás">×</button>
+        <h2 id="topic-llps-title">Mire lehet jó egy fehérjecsepp a sejtben?</h2>
+        <div class="topic-columns">
+          <div>
+            <h3>Az E. coli SSB-fehérjéjének példája</h3>
+            <p>A videón egy baktérium, az <em>Escherichia coli</em> SSB-fehérjéit látod. A cseppben sok fehérje gyűlik össze kis helyen. Az ilyen sűrűbb molekulacsoportot kondenzátumnak is nevezik.</p>
+            <p>Ez a szerveződés segíthet egy helyre gyűjteni a DNS védelméhez és javításához szükséges fehérjéket. Szimulációkkal molekuláris szinten vizsgálhatjuk, milyen kölcsönhatások tartják össze a cseppet.</p>
+          </div>
+          <div>
+            <h3>Kapcsolat az emberi sejtek működésével</h3>
+            <p>Az emberi sejtekben is részt vesznek hasonló fehérjecsoportosulások a DNS károsodására adott válaszban. Ilyen például az 53BP1 fehérjéhez kapcsolódó szerveződés.</p>
+            <p>Ha a javítófehérjék szerveződése zavart szenved, romolhat a DNS-javítás. A felhalmozódó DNS-hibák pedig növelhetik a daganatok kialakulásának kockázatát.</p>
+          </div>
+        </div>
+        <p class="equation takeaway">Hibás szerveződés → kevésbé hatékony DNS-javítás → több megmaradó DNS-hiba → nagyobb daganatkockázat lehet</p>
+        <p>Az SSB-videó egy bakteriális rendszer modellje. Az emberi sejtekben más fehérjék működnek, de a molekulák térbeli szerveződésének megértése mindkét esetben fontos.</p>
+        <p class="topic-sources">Kutatások: <a href="https://pubmed.ncbi.nlm.nih.gov/33020264/">SSB-kondenzátumok</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6694294/">53BP1 és a DNS-javítás</a>.</p>
+      </section>
+    </section>
     <div id="gallery" class="grid"></div>
     <noscript>A videógaléria megjelenítéséhez engedélyezd a JavaScriptet a böngésződben.</noscript>
   </main>
@@ -156,6 +260,26 @@
 </footer>
 
   <script>
+    document.querySelectorAll('.topic-toggle').forEach(toggle => {
+      const panel = document.getElementById(toggle.getAttribute('aria-controls'));
+      function setOpen(open) {
+        panel.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+      }
+      toggle.addEventListener('click', () => setOpen(panel.hidden));
+      panel.querySelector('.topic-close').addEventListener('click', () => {
+        toggle.focus();
+        setOpen(false);
+      });
+      panel.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          toggle.focus();
+          setOpen(false);
+        }
+      });
+    });
+
     const VIDEOS = [
       {
         "title": "Alfa-amiláz: egy mozgó molekuláris szerszám",
@@ -278,7 +402,6 @@
       time.textContent = '0:00 / 0:00';
       time.setAttribute('aria-hidden', 'true');
       const fsBtn = button('Teljes képernyő', ICONS.fullscreen);
-      fsBtn.hidden = !media.requestFullscreen && !video.webkitEnterFullscreen;
       const infoBtn = button('Magyarázat megnyitása', ICONS.info);
       infoBtn.classList.add('info-btn');
       infoBtn.setAttribute('aria-controls', `note-${index}`);
@@ -322,7 +445,6 @@
       meta.append(heading, description, error);
       card.append(media, meta);
 
-      let noteSeen = false;
       function setNoteOpen(open) {
         note.hidden = !open;
         infoBtn.setAttribute('aria-expanded', String(open));
@@ -331,19 +453,13 @@
         infoBtn.setAttribute('aria-label', label);
       }
       infoBtn.addEventListener('click', () => {
-        noteSeen = true;
         setNoteOpen(note.hidden);
       });
       closeNote.addEventListener('click', () => {
         infoBtn.focus();
         setNoteOpen(false);
       });
-      video.addEventListener('play', () => {
-        if (!noteSeen) {
-          noteSeen = true;
-          setNoteOpen(true);
-        }
-      });
+      video.addEventListener('play', () => setNoteOpen(true));
       let hideTimer;
       function showControls() {
         clearTimeout(hideTimer);
@@ -420,13 +536,36 @@
         showControls();
       });
 
+      function isExpanded() {
+        return document.fullscreenElement === media || media.classList.contains('is-expanded');
+      }
+      function syncFullscreen() {
+        const fullscreen = isExpanded();
+        const label = fullscreen ? 'Kilépés a teljes képernyőből' : 'Teljes képernyő';
+        fsBtn.title = label;
+        fsBtn.setAttribute('aria-label', label);
+        fsBtn.replaceChildren(icon(fullscreen ? ICONS.exitFullscreen : ICONS.fullscreen));
+        if (fullscreen) setNoteOpen(true);
+        scheduleHide();
+      }
+      function setExpanded(open) {
+        media.classList.toggle('is-expanded', open);
+        document.body.classList.toggle('has-expanded-video', open);
+        syncFullscreen();
+        fsBtn.focus();
+      }
       async function toggleFullscreen() {
+        if (media.classList.contains('is-expanded')) {
+          setExpanded(false);
+          return;
+        }
         try {
           if (document.fullscreenElement === media) await document.exitFullscreen();
-          else if (media.requestFullscreen) await media.requestFullscreen();
-          else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+          else if (document.fullscreenEnabled && media.requestFullscreen) await media.requestFullscreen();
+          else setExpanded(true);
         } catch {
-          reportError('A teljes képernyőt most nem engedi a böngésző. A videót itt az oldalon is megnézheted.');
+          // Keep the explanation available when native fullscreen is unavailable.
+          if (document.fullscreenElement !== media) setExpanded(true);
         }
       }
       fsBtn.addEventListener('click', toggleFullscreen);
@@ -434,16 +573,28 @@
         if (event.target.closest('button, input, .video-note')) return;
         toggleFullscreen();
       });
-      document.addEventListener('fullscreenchange', () => {
-        const fullscreen = document.fullscreenElement === media;
-        const label = fullscreen ? 'Kilépés a teljes képernyőből' : 'Teljes képernyő';
-        fsBtn.title = label;
-        fsBtn.setAttribute('aria-label', label);
-        fsBtn.replaceChildren(icon(fullscreen ? ICONS.exitFullscreen : ICONS.fullscreen));
-        scheduleHide();
+      document.addEventListener('fullscreenchange', syncFullscreen);
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && media.classList.contains('is-expanded')) {
+          event.preventDefault();
+          setExpanded(false);
+        }
       });
       // Let buttons and the seek slider keep their native keyboard behavior.
       media.addEventListener('keydown', event => {
+        if (event.key === 'Tab' && media.classList.contains('is-expanded')) {
+          const targets = [...media.querySelectorAll('button, input')]
+            .filter(element => !element.disabled && element.getClientRects().length && getComputedStyle(element).visibility !== 'hidden');
+          const first = targets[0];
+          const last = targets[targets.length - 1];
+          if (event.shiftKey && event.target === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && event.target === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
         if (event.altKey || event.ctrlKey || event.metaKey || event.target === seek) return;
         if (event.key.toLowerCase() === 'f') {
           event.preventDefault();
@@ -452,7 +603,7 @@
       });
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver(entries => {
-          if (!entries[0].isIntersecting && document.fullscreenElement !== media) video.pause();
+          if (!entries[0].isIntersecting && !isExpanded()) video.pause();
         }, { threshold: 0.1 });
         observer.observe(card);
       }
